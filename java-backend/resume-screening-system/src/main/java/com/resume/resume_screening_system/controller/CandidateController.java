@@ -1,235 +1,925 @@
 package com.resume.resume_screening_system.controller;
 
-import com.resume.resume_screening_system.entity.Candidate;
-import com.resume.resume_screening_system.repository.CandidateRepository;
-import com.resume.resume_screening_system.service.EmailService;
+import com.resume.resume_screening_system.dto.DashboardResponse;
+import com.resume.resume_screening_system.dto.PythonResponse;
 
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.text.PDFTextStripper;
+import com.resume.resume_screening_system.entity.Candidate;
+import com.resume.resume_screening_system.entity.Job;
+
+import com.resume.resume_screening_system.repository.CandidateRepository;
+import com.resume.resume_screening_system.repository.JobRepository;
+
+import com.resume.resume_screening_system.service.EmailService;
+import com.resume.resume_screening_system.service.PythonNlpService;
+import com.resume.resume_screening_system.service.ResumeParserService;
 
 import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
+
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+
 import org.springframework.web.bind.annotation.*;
+
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
+
+import java.time.LocalDateTime;
+
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/candidates")
-@CrossOrigin(origins = "*")
+@CrossOrigin("*")
 public class CandidateController {
 
     @Autowired
     private CandidateRepository candidateRepository;
 
     @Autowired
+    private JobRepository jobRepository;
+
+    @Autowired
     private EmailService emailService;
 
-    // ✅ GET ALL
+    @Autowired
+    private PythonNlpService pythonNLPService;
+
+    @Autowired
+    private ResumeParserService resumeParserService;
+
+    // =========================
+    // GET ALL CANDIDATES
+    // =========================
+
     @GetMapping
     public List<Candidate> getAllCandidates() {
-        return candidateRepository.findAll();
-    }
 
-    // ✅ GET BY ID
-    @GetMapping("/{id}")
-    public Candidate getCandidateById(@PathVariable Long id) {
-        return candidateRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Candidate not found"));
-    }
+        List<Candidate> candidates =
+                candidateRepository.findAll();
 
-    // ✅ UPLOAD
-    @PostMapping("/upload")
-    public Candidate uploadCandidate(
-            @RequestParam String name,
-            @RequestParam String email,
-            @RequestParam String phoneNumber,
-            @RequestParam Double experience,
-            @RequestParam String education,
-            @RequestParam MultipartFile resume
-    ) throws IOException {
-
-        // ✅ CREATE UPLOADS FOLDER
-        String uploadDir = System.getProperty("user.dir") + File.separator + "uploads";
-
-        Path uploadPath = Paths.get(uploadDir);
-
-        if (!Files.exists(uploadPath)) {
-            Files.createDirectories(uploadPath);
-        }
-
-        // ✅ FILE NAME
-        String fileName = resume.getOriginalFilename();
-
-        // ✅ SAVE FILE
-        Path filePath = uploadPath.resolve(fileName);
-
-        Files.copy(
-                resume.getInputStream(),
-                filePath,
-                StandardCopyOption.REPLACE_EXISTING
+        candidates.sort(
+                Comparator.comparing(
+                        Candidate::getScore,
+                        Comparator.nullsLast(
+                                Comparator.reverseOrder()
+                        )
+                )
         );
 
-        // ✅ READ PDF
-        PDDocument document = PDDocument.load(filePath.toFile());
+        return candidates;
+    }
 
-        PDFTextStripper pdfStripper = new PDFTextStripper();
+    // =========================
+    // GET CANDIDATE BY ID
+    // =========================
 
-        String resumeText = pdfStripper.getText(document);
+    @GetMapping("/{id}")
+    public Candidate getCandidateById(
+            @PathVariable Long id
+    ) {
 
-        document.close();
+        return candidateRepository.findById(id)
+                .orElseThrow(() ->
+                        new RuntimeException(
+                                "Candidate not found"
+                        ));
+    }
 
-        String lowerText = resumeText.toLowerCase();
+    // =========================
+    // UPLOAD CANDIDATE
+    // =========================
 
-        // ✅ SKILLS
-        StringBuilder skills = new StringBuilder();
+    @PostMapping("/upload")
+    public Candidate uploadCandidate(
 
-        if (lowerText.contains("java")) skills.append("Java, ");
-        if (lowerText.contains("spring boot")) skills.append("Spring Boot, ");
-        if (lowerText.contains("mysql")) skills.append("MySQL, ");
-        if (lowerText.contains("python")) skills.append("Python, ");
-        if (lowerText.contains("html")) skills.append("HTML, ");
+            @RequestParam("name") String name,
 
-        // ✅ SCORE
-        double score = 0;
+            @RequestParam("email") String email,
 
-        if (lowerText.contains("java")) score += 20;
-        if (lowerText.contains("spring boot")) score += 20;
-        if (lowerText.contains("mysql")) score += 20;
-        if (lowerText.contains("python")) score += 20;
-        if (lowerText.contains("html")) score += 20;
+            @RequestParam("phone") String phone,
 
-        // EXPERIENCE SCORE
-        if (experience >= 5) {
-            score += 30;
-        } else if (experience >= 3) {
-            score += 20;
-        } else if (experience >= 1) {
-            score += 10;
+            @RequestParam("experience") Double experience,
+
+            @RequestParam("education") String education,
+
+            @RequestParam("appliedPosition") String appliedPosition,
+
+            @RequestParam("jobDescription") String jobDescription,
+
+            @RequestParam("resume") MultipartFile file
+
+    ) throws Exception {
+
+        // =========================
+        // FILE VALIDATION
+        // =========================
+
+        String originalFileName =
+                file.getOriginalFilename();
+
+        if (originalFileName == null) {
+
+            throw new RuntimeException(
+                    "Invalid file"
+            );
         }
 
-        // EDUCATION SCORE
-        String educationLower = education.toLowerCase();
+        String lowerFileName =
+                originalFileName.toLowerCase();
 
-        if (educationLower.contains("mca") ||
-                educationLower.contains("msc")) {
+        if (
+                !lowerFileName.endsWith(".pdf")
+                        &&
+                        !lowerFileName.endsWith(".docx")
+        ) {
 
-            score += 15;
-
-        } else if (educationLower.contains("be") ||
-                educationLower.contains("btech")) {
-
-            score += 10;
+            throw new RuntimeException(
+                    "Only PDF and DOCX files are allowed"
+            );
         }
 
-        // ✅ RANKING
-        String rank;
+        // =========================
+        // CREATE UPLOAD DIRECTORY
+        // =========================
 
-        if (score >= 90) {
-            rank = "Excellent";
-        } else if (score >= 70) {
-            rank = "Good";
-        } else if (score >= 50) {
-            rank = "Average";
-        } else {
+        String uploadDir =
+                System.getProperty("user.dir")
+                        + File.separator
+                        + "uploads";
+
+        File directory =
+                new File(uploadDir);
+
+        if (!directory.exists()) {
+
+            directory.mkdirs();
+        }
+
+        // =========================
+        // SAVE FILE
+        // =========================
+
+        String fileName =
+                System.currentTimeMillis()
+                        + "_"
+                        + originalFileName;
+
+        String filePath =
+                uploadDir
+                        + File.separator
+                        + fileName;
+
+        File destinationFile =
+                new File(filePath);
+
+        file.transferTo(destinationFile);
+
+        // =========================
+        // RESUME PARSING
+        // =========================
+
+        Map<String, Object> parsedData =
+                resumeParserService.parseResume(
+                        destinationFile
+                );
+
+        // =========================
+        // AUTO EXTRACTED VALUES
+        // =========================
+
+        String parsedName =
+                (String) parsedData.get("name");
+
+        String parsedEmail =
+                (String) parsedData.get("email");
+
+        String parsedPhone =
+                (String) parsedData.get("phone");
+
+        Double parsedExperience =
+                (Double) parsedData.get("experience");
+
+        String parsedSkills =
+                (String) parsedData.get("skills");
+
+        // =========================
+        // FIND JOB
+        // =========================
+
+        Job selectedJob =
+                jobRepository.findAll()
+                        .stream()
+                        .filter(job ->
+                                job.getJobTitle()
+                                        .equalsIgnoreCase(
+                                                appliedPosition
+                                        )
+                        )
+                        .findFirst()
+                        .orElse(null);
+
+        Double thresholdPercentage = 60.0;
+
+        if (
+                selectedJob != null
+                        &&
+                        selectedJob.getThresholdPercentage()
+                                != null
+        ) {
+
+            thresholdPercentage =
+                    selectedJob
+                            .getThresholdPercentage();
+        }
+
+        // =========================
+        // PYTHON NLP ANALYSIS
+        // =========================
+
+        PythonResponse pythonResponse =
+                pythonNLPService.analyzeResume(
+                        destinationFile,
+                        jobDescription,
+                        appliedPosition
+                );
+
+        // =========================
+        // NULL CHECK
+        // =========================
+
+        if (pythonResponse == null) {
+
+            throw new RuntimeException(
+                    "Python NLP service failed"
+            );
+        }
+
+        // =========================
+        // SCORE
+        // =========================
+
+        Double calculatedScore =
+                pythonResponse.getScore();
+
+        if (calculatedScore == null) {
+
+            calculatedScore = 0.0;
+        }
+
+        // =========================
+        // SKILLS
+        // =========================
+
+        String finalSkills = "";
+
+        if (pythonResponse.getSkills() != null) {
+
+            finalSkills =
+                    String.join(
+                            ", ",
+                            pythonResponse.getSkills()
+                    );
+        }
+
+        if (
+                finalSkills == null
+                        ||
+                        finalSkills.isEmpty()
+        ) {
+
+            finalSkills = parsedSkills;
+        }
+
+        // =========================
+        // RANK
+        // =========================
+
+        String rank =
+                pythonResponse.getRank();
+
+        if (rank == null) {
+
             rank = "Low";
         }
 
-        // ✅ SAVE TO DATABASE
-        Candidate candidate = new Candidate();
+        // =========================
+        // STATUS FLOW
+        // =========================
 
-        candidate.setName(name);
-        candidate.setEmail(email);
-        candidate.setPhoneNumber(phoneNumber);
-        candidate.setExperience(experience);
-        candidate.setEducation(education);
-        candidate.setScore(score);
-        candidate.setSkills(skills.toString());
-        candidate.setRanking(rank);
+        String status;
 
-        // SAVE FILE PATH
-        candidate.setResumeFilePath(filePath.toString());
+        if (
+                calculatedScore
+                        >= thresholdPercentage
+        ) {
 
-        Candidate savedCandidate = candidateRepository.save(candidate);
+            status = "Pending";
 
-        // ✅ SEND EMAIL
-        try {
-            emailService.sendEmail(email, name, score, rank);
-        } catch (Exception e) {
-            System.out.println("Email sending failed: " + e.getMessage());
+        } else {
+
+            status = "Rejected";
         }
 
-        return savedCandidate;
+        // =========================
+        // AUTO DELETE REJECTED
+        // =========================
+
+        if (
+                status.equalsIgnoreCase(
+                        "Rejected"
+                )
+        ) {
+
+            if (destinationFile.exists()) {
+
+                destinationFile.delete();
+            }
+
+            System.out.println(
+                    "Rejected Resume Deleted"
+            );
+
+            return null;
+        }
+
+        // =========================
+        // CREATE CANDIDATE
+        // =========================
+
+        Candidate candidate =
+                new Candidate();
+
+        // NAME
+
+        if (
+                parsedName != null
+                        &&
+                        !parsedName.isEmpty()
+        ) {
+
+            candidate.setName(parsedName);
+
+        } else {
+
+            candidate.setName(name);
+        }
+
+        // EMAIL
+
+        if (
+                parsedEmail != null
+                        &&
+                        !parsedEmail.isEmpty()
+        ) {
+
+            candidate.setEmail(parsedEmail);
+
+        } else {
+
+            candidate.setEmail(email);
+        }
+
+        // PHONE
+
+        if (
+                parsedPhone != null
+                        &&
+                        !parsedPhone.isEmpty()
+        ) {
+
+            candidate.setPhone(parsedPhone);
+
+        } else {
+
+            candidate.setPhone(phone);
+        }
+
+        // EXPERIENCE
+
+        if (
+                parsedExperience != null
+                        &&
+                        parsedExperience > 0
+        ) {
+
+            candidate.setExperience(
+                    parsedExperience
+            );
+
+        } else if (
+                pythonResponse.getExperience()
+                        != null
+        ) {
+
+            candidate.setExperience(
+
+                    pythonResponse
+                            .getExperience()
+                            .doubleValue()
+            );
+
+        } else {
+
+            candidate.setExperience(
+                    experience
+            );
+        }
+
+        // =========================
+        // SAVE DETAILS
+        // =========================
+
+        candidate.setEducation(
+                education
+        );
+
+        candidate.setAppliedPosition(
+                appliedPosition
+        );
+
+        candidate.setJobDescription(
+                jobDescription
+        );
+
+        candidate.setThresholdPercentage(
+                thresholdPercentage
+        );
+
+        candidate.setScore(
+                calculatedScore
+        );
+
+        candidate.setSkills(
+                finalSkills
+        );
+
+        candidate.setRank(
+                rank
+        );
+
+        candidate.setStatus(
+                status
+        );
+
+        candidate.setCurrentStage(
+                "Pending"
+        );
+
+        candidate.setShortlisted(
+                false
+        );
+
+        candidate.setSelected(
+                false
+        );
+
+        candidate.setResumeFilePath(
+                filePath
+        );
+
+        candidate.setResumeUrl(
+                pythonResponse.getResumeUrl()
+        );
+
+        candidate.setAppliedDate(
+                LocalDateTime.now()
+        );
+
+        candidate.setExpiryDate(
+                LocalDateTime.now()
+                        .plusYears(1)
+        );
+
+        if (selectedJob != null) {
+
+            candidate.setJob(
+                    selectedJob
+            );
+        }
+
+        // =========================
+        // SAVE DATABASE
+        // =========================
+
+        return candidateRepository.save(
+                candidate
+        );
     }
 
-    // ✅ UPDATE
-    @PutMapping("/{id}")
-    public Candidate updateCandidate(
+    // =========================
+    // UPDATE STATUS
+    // =========================
+
+    @PutMapping("/status/{id}")
+    public Candidate updateCandidateStatus(
+
             @PathVariable Long id,
-            @RequestBody Candidate updatedCandidate
+
+            @RequestParam String status
+
     ) {
 
-        Candidate candidate = candidateRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Candidate not found"));
+        Candidate candidate =
+                candidateRepository.findById(id)
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "Candidate not found"
+                                ));
 
-        candidate.setName(updatedCandidate.getName());
-        candidate.setEmail(updatedCandidate.getEmail());
-        candidate.setPhoneNumber(updatedCandidate.getPhoneNumber());
-        candidate.setExperience(updatedCandidate.getExperience());
-        candidate.setEducation(updatedCandidate.getEducation());
-        candidate.setScore(updatedCandidate.getScore());
-        candidate.setSkills(updatedCandidate.getSkills());
-        candidate.setRanking(updatedCandidate.getRanking());
+        candidate.setStatus(status);
 
-        return candidateRepository.save(candidate);
+        return candidateRepository.save(
+                candidate
+        );
     }
 
-    // ✅ DELETE
-    @DeleteMapping("/{id}")
-    public String deleteCandidate(@PathVariable Long id) {
+    // =========================
+    // UPDATE CANDIDATE
+    // =========================
 
-        candidateRepository.deleteById(id);
+    @PutMapping("/{id}")
+    public Candidate updateCandidate(
 
-        return "Candidate deleted successfully";
+            @PathVariable Long id,
+
+            @RequestBody Candidate updatedCandidate
+
+    ) {
+
+        Candidate candidate =
+                candidateRepository.findById(id)
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "Candidate not found"
+                                ));
+
+        candidate.setName(
+                updatedCandidate.getName()
+        );
+
+        candidate.setEmail(
+                updatedCandidate.getEmail()
+        );
+
+        candidate.setPhone(
+                updatedCandidate.getPhone()
+        );
+
+        candidate.setExperience(
+                updatedCandidate.getExperience()
+        );
+
+        candidate.setEducation(
+                updatedCandidate.getEducation()
+        );
+
+        candidate.setAppliedPosition(
+                updatedCandidate.getAppliedPosition()
+        );
+
+        candidate.setJobDescription(
+                updatedCandidate.getJobDescription()
+        );
+
+        candidate.setThresholdPercentage(
+                updatedCandidate.getThresholdPercentage()
+        );
+
+        candidate.setScore(
+                updatedCandidate.getScore()
+        );
+
+        candidate.setSkills(
+                updatedCandidate.getSkills()
+        );
+
+        candidate.setRank(
+                updatedCandidate.getRank()
+        );
+
+        candidate.setStatus(
+                updatedCandidate.getStatus()
+        );
+
+        candidate.setResumeUrl(
+                updatedCandidate.getResumeUrl()
+        );
+
+        return candidateRepository.save(
+                candidate
+        );
     }
 
-    // ✅ DOWNLOAD RESUME
+    // =========================
+    // DOWNLOAD RESUME
+    // =========================
+
     @GetMapping("/download/{id}")
-    public ResponseEntity<Resource> downloadResume(@PathVariable Long id)
-            throws IOException {
+    public ResponseEntity<Resource>
+    downloadResume(
 
-        Candidate candidate = candidateRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Candidate not found"));
+            @PathVariable Long id
 
-        Path path = Paths.get(candidate.getResumeFilePath());
+    ) throws IOException {
 
-        Resource resource;
+        Candidate candidate =
+                candidateRepository.findById(id)
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "Candidate not found"
+                                ));
 
-        try {
-            resource = new UrlResource(path.toUri());
+        File file =
+                new File(
+                        candidate.getResumeFilePath()
+                );
 
-        } catch (MalformedURLException e) {
+        Resource resource =
+                new UrlResource(file.toURI());
 
-            throw new RuntimeException("File not found");
+        String contentType =
+                "application/octet-stream";
+
+        if (
+                file.getName()
+                        .toLowerCase()
+                        .endsWith(".pdf")
+        ) {
+
+            contentType =
+                    MediaType.APPLICATION_PDF_VALUE;
+
+        } else if (
+                file.getName()
+                        .toLowerCase()
+                        .endsWith(".docx")
+        ) {
+
+            contentType =
+                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
         }
 
         return ResponseEntity.ok()
+
                 .header(
-                        HttpHeaders.CONTENT_DISPOSITION,
-                        "attachment; filename=\"" + path.getFileName().toString() + "\""
+
+                        HttpHeaders
+                                .CONTENT_DISPOSITION,
+
+                        "inline; filename=\""
+                                + file.getName()
+                                + "\""
                 )
-                .contentType(MediaType.APPLICATION_PDF)
+
+                .contentType(
+                        MediaType.parseMediaType(
+                                contentType
+                        )
+                )
+
                 .body(resource);
+    }
+
+    // =========================
+    // GET RANKING
+    // =========================
+
+    @GetMapping("/ranking")
+    public List<Candidate> getRankedCandidates() {
+
+        List<Candidate> candidates =
+                candidateRepository.findAll();
+
+        candidates.sort(
+
+                Comparator.comparing(
+                        Candidate::getScore,
+                        Comparator.nullsLast(
+                                Comparator.reverseOrder()
+                        )
+                )
+        );
+
+        return candidates;
+    }
+
+    // =========================
+    // SHORTLIST CANDIDATE
+    // =========================
+
+    @PutMapping("/shortlist/{id}")
+    public Candidate shortlistCandidate(
+
+            @PathVariable Long id
+
+    ) {
+
+        Candidate candidate =
+                candidateRepository.findById(id)
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "Candidate not found"
+                                ));
+
+        candidate.setCurrentStage(
+                "Shortlisted"
+        );
+
+        candidate.setStatus(
+                "Shortlisted"
+        );
+
+        candidate.setShortlisted(
+                true
+        );
+
+        // =========================
+        // SEND SHORTLIST MAIL
+        // =========================
+
+        emailService.sendEmail(
+
+                candidate.getEmail(),
+
+                candidate.getName(),
+
+                candidate.getAppliedPosition(),
+
+                "Shortlisted"
+        );
+
+        return candidateRepository.save(
+                candidate
+        );
+    }
+
+    // =========================
+    // SELECT CANDIDATE
+    // =========================
+
+    @PutMapping("/select/{id}")
+    public Candidate selectCandidate(
+
+            @PathVariable Long id
+
+    ) {
+
+        Candidate candidate =
+                candidateRepository.findById(id)
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "Candidate not found"
+                                ));
+
+        candidate.setCurrentStage(
+                "Selected"
+        );
+
+        candidate.setStatus(
+                "Selected"
+        );
+
+        candidate.setSelected(
+                true
+        );
+
+        // =========================
+        // SEND SELECTION MAIL
+        // =========================
+
+        emailService.sendEmail(
+
+                candidate.getEmail(),
+
+                candidate.getName(),
+
+                candidate.getAppliedPosition(),
+
+                "Selected"
+        );
+
+        // =========================
+        // SEND HR NOTIFICATION
+        // =========================
+
+        emailService.sendSelectionNotificationToHR(
+
+                candidate.getName(),
+
+                candidate.getEmail(),
+
+                candidate.getAppliedPosition(),
+
+                candidate.getScore()
+        );
+
+        return candidateRepository.save(
+                candidate
+        );
+    }
+
+    // =========================
+    // DASHBOARD ANALYTICS
+    // =========================
+
+    @GetMapping("/dashboard")
+    public DashboardResponse getDashboardAnalytics() {
+
+        List<Candidate> candidates =
+                candidateRepository.findAll();
+
+        DashboardResponse response =
+                new DashboardResponse();
+
+        response.setTotalCandidates(
+                (long) candidates.size()
+        );
+
+        long shortlisted =
+                candidates.stream()
+
+                        .filter(candidate ->
+                                candidate.getStatus()
+                                        != null
+                                        &&
+                                        candidate.getStatus()
+                                                .equalsIgnoreCase(
+                                                        "Shortlisted"
+                                                )
+                        )
+
+                        .count();
+
+        response.setAcceptedCandidates(
+                shortlisted
+        );
+
+        long selected =
+                candidates.stream()
+
+                        .filter(candidate ->
+                                candidate.getStatus()
+                                        != null
+                                        &&
+                                        candidate.getStatus()
+                                                .equalsIgnoreCase(
+                                                        "Selected"
+                                                )
+                        )
+
+                        .count();
+
+        response.setRejectedCandidates(
+                selected
+        );
+
+        double averageScore =
+                candidates.stream()
+
+                        .mapToDouble(candidate ->
+
+                                candidate.getScore() != null
+                                        ? candidate.getScore()
+                                        : 0.0
+                        )
+
+                        .average()
+
+                        .orElse(0);
+
+        response.setAverageScore(
+
+                Math.round(
+                        averageScore * 100.0
+                ) / 100.0
+        );
+
+        double highestScore =
+                candidates.stream()
+
+                        .mapToDouble(candidate ->
+
+                                candidate.getScore() != null
+                                        ? candidate.getScore()
+                                        : 0.0
+                        )
+
+                        .max()
+
+                        .orElse(0);
+
+        response.setHighestScore(
+                highestScore
+        );
+
+        return response;
     }
 }

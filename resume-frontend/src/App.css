@@ -1,38 +1,281 @@
-.App {
-  text-align: center;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* =========================
+   GLOBAL
+========================= */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+html,
+body,
+#root {
+  height: 100%;
+  width: 100%;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+body {
+  font-family: Arial, sans-serif;
+  background-color: #fafaff;
+  overflow-x: hidden;
+  color: #374151;
 }
 
-.App-header {
-  background-color: #282c34;
+/* =========================
+   SCROLLBAR
+========================= */
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #c4b5fd;
+  border-radius: 20px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* =========================
+   LOGIN PAGE
+========================= */
+
+.login-container {
+  width: 100%;
   min-height: 100vh;
   display: flex;
-  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(
+    135deg,
+    #f3f0ff,
+    #fafaff
+  );
+  padding: 20px;
+}
+
+.login-card {
+  width: 400px;
+  background-color: #ffffff;
+  padding: 40px;
+  border-radius: 24px;
+  box-shadow: 0px 10px 30px
+    rgba(0, 0, 0, 0.08);
+}
+
+.login-title {
+  text-align: center;
+  color: #8b5cf6;
+  margin-bottom: 8px;
+  font-size: 34px;
+  font-weight: bold;
+}
+
+.login-subtitle {
+  text-align: center;
+  color: #6b7280;
+  margin-bottom: 30px;
+  font-size: 15px;
+}
+
+.form-label {
+  color: #374151;
+  font-weight: 600;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.form-control {
+  width: 100%;
+  height: 52px;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  padding: 0 15px;
+  outline: none;
+  transition: 0.3s;
+  background-color: #ffffff;
+}
+
+.form-control:focus {
+  border-color: #8b5cf6;
+  box-shadow: 0px 0px 0px 3px
+    rgba(139, 92, 246, 0.15);
+}
+
+.login-btn {
+  width: 100%;
+  height: 52px;
+  border: none;
+  border-radius: 12px;
+  background-color: #8b5cf6;
+  color: #ffffff;
+  font-size: 17px;
+  font-weight: 600;
+  transition: 0.3s;
+  cursor: pointer;
+}
+
+.login-btn:hover {
+  background-color: #7c3aed;
+}
+
+/* =========================
+   DASHBOARD LAYOUT
+   (Optional utility classes)
+========================= */
+
+.dashboard-container {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+}
+
+.main-content {
+  flex: 1;
+  min-height: 100vh;
+  overflow-y: auto;
+  background-color: #fafaff;
+  padding: 20px;
+}
+
+/* =========================
+   HEADER
+========================= */
+
+.top-header {
+  height: 70px;
+  background-color: #ffffff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0px 25px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.header-title {
+  color: #374151;
+  font-size: 22px;
+  font-weight: bold;
+}
+
+.logout-btn {
+  border: none;
+  background-color: #8b5cf6;
+  color: #ffffff;
+  padding: 10px 18px;
+  border-radius: 12px;
+  font-weight: 600;
+  transition: 0.3s;
+  cursor: pointer;
+}
+
+.logout-btn:hover {
+  background-color: #7c3aed;
+}
+
+/* =========================
+   DASHBOARD CARDS
+========================= */
+
+.dashboard-card {
+  background-color: #ffffff;
+  border-radius: 18px;
+  padding: 22px;
+  box-shadow: 0px 4px 12px
+    rgba(0, 0, 0, 0.06);
+  transition: 0.3s;
+}
+
+.dashboard-card:hover {
+  transform: translateY(-2px);
+}
+
+/* =========================
+   TABLE
+========================= */
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #ffffff;
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+.table th {
+  background-color: #f3f0ff;
+  color: #374151;
+  border: none;
+  padding: 16px;
+  font-size: 14px;
+  text-align: left;
+}
+
+.table td {
+  vertical-align: middle;
+  padding: 14px;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 14px;
+  color: #374151;
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+/* =========================
+   BUTTONS
+========================= */
+
+.primary-btn {
+  background-color: #8b5cf6;
+  border: none;
+  color: #ffffff;
+  padding: 10px 18px;
+  border-radius: 12px;
+  font-weight: 600;
+  transition: 0.3s;
+  cursor: pointer;
+}
+
+.primary-btn:hover {
+  background-color: #7c3aed;
+}
+
+/* =========================
+   BADGES
+========================= */
+
+.badge {
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
 }
 
-.App-link {
-  color: #61dafb;
-}
+/* =========================
+   RESPONSIVE
+========================= */
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
+@media screen and (max-width: 768px) {
+
+  .main-content {
+    padding: 15px;
   }
-  to {
-    transform: rotate(360deg);
+
+  .login-card {
+    width: 100%;
   }
+
 }

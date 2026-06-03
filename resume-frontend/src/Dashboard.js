@@ -2,7 +2,28 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "bootstrap/dist/css/bootstrap.min.css";
 
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
+
+import {
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
+
 function Dashboard({ handleLogout }) {
+
+  // =========================
+  // STATES
+  // =========================
 
   const [candidate, setCandidate] = useState({
     name: "",
@@ -10,43 +31,26 @@ function Dashboard({ handleLogout }) {
     phoneNumber: "",
     experience: "",
     education: "",
+    appliedPosition: "",
+    jobDescription: "",
   });
 
   const [resume, setResume] = useState(null);
 
   const [candidates, setCandidates] = useState([]);
 
-  // SEARCH
+  const [jobs, setJobs] = useState([]);
+
   const [search, setSearch] = useState("");
 
-  // SORT
   const [sortOrder, setSortOrder] = useState("high");
 
-  // DARK MODE
   const [darkMode, setDarkMode] = useState(false);
 
-  // DASHBOARD STATS
+  // =========================
+  // FETCH CANDIDATES
+  // =========================
 
-  const totalCandidates = candidates.length;
-
-  const highestScore =
-    candidates.length > 0
-      ? Math.max(...candidates.map(c => c.score))
-      : 0;
-
-  const javaDevelopers = candidates.filter(
-    (candidate) =>
-      candidate.skills &&
-      candidate.skills.toLowerCase().includes("java")
-  ).length;
-
-  const pythonDevelopers = candidates.filter(
-    (candidate) =>
-      candidate.skills &&
-      candidate.skills.toLowerCase().includes("python")
-  ).length;
-
-  // FETCH ALL CANDIDATES
   const fetchCandidates = async () => {
 
     try {
@@ -59,18 +63,82 @@ function Dashboard({ handleLogout }) {
 
     } catch (error) {
 
-      console.error(error);
+      console.error("Error fetching candidates:", error);
     }
   };
 
+  // =========================
+  // FETCH JOBS
+  // =========================
+
+  const fetchJobs = async () => {
+
+    try {
+
+      const response = await axios.get(
+        "http://localhost:8080/jobs"
+      );
+
+      setJobs(response.data);
+
+    } catch (error) {
+
+      console.error("Error fetching jobs:", error);
+    }
+  };
+
+  // =========================
   // LOAD DATA
+  // =========================
+
   useEffect(() => {
 
     fetchCandidates();
 
+    fetchJobs();
+
   }, []);
 
+  // =========================
+  // DASHBOARD STATS
+  // =========================
+
+  const totalCandidates = candidates.length;
+
+  const highestScore =
+    candidates.length > 0
+      ? Math.max(...candidates.map((c) => c.score))
+      : 0;
+
+  const acceptedCandidates = candidates.filter(
+    (candidate) => candidate.status === "Accepted"
+  ).length;
+
+  const rejectedCandidates = candidates.filter(
+    (candidate) => candidate.status === "Not Selected"
+  ).length;
+
+  // =========================
+  // CHART DATA
+  // =========================
+
+  const chartData = [
+    {
+      name: "Accepted",
+      count: acceptedCandidates,
+    },
+    {
+      name: "Rejected",
+      count: rejectedCandidates,
+    },
+  ];
+
+  const COLORS = ["#198754", "#dc3545"];
+
+  // =========================
   // HANDLE INPUT
+  // =========================
+
   const handleChange = (e) => {
 
     setCandidate({
@@ -79,13 +147,39 @@ function Dashboard({ handleLogout }) {
     });
   };
 
+  // =========================
+  // HANDLE POSITION CHANGE
+  // =========================
+
+  const handlePositionChange = (e) => {
+
+    const selectedRole = e.target.value;
+
+    const selectedJob = jobs.find(
+      (job) => job.jobTitle === selectedRole
+    );
+
+    setCandidate({
+      ...candidate,
+      appliedPosition: selectedRole,
+      jobDescription:
+        selectedJob?.jobDescription || "",
+    });
+  };
+
+  // =========================
   // HANDLE FILE
+  // =========================
+
   const handleFileChange = (e) => {
 
     setResume(e.target.files[0]);
   };
 
+  // =========================
   // UPLOAD CANDIDATE
+  // =========================
+
   const handleSubmit = async (e) => {
 
     e.preventDefault();
@@ -97,6 +191,11 @@ function Dashboard({ handleLogout }) {
     formData.append("phoneNumber", candidate.phoneNumber);
     formData.append("experience", candidate.experience);
     formData.append("education", candidate.education);
+    formData.append(
+      "appliedPosition",
+      candidate.appliedPosition
+    );
+
     formData.append("resume", resume);
 
     try {
@@ -114,6 +213,8 @@ function Dashboard({ handleLogout }) {
         phoneNumber: "",
         experience: "",
         education: "",
+        appliedPosition: "",
+        jobDescription: "",
       });
 
       setResume(null);
@@ -128,7 +229,10 @@ function Dashboard({ handleLogout }) {
     }
   };
 
+  // =========================
   // DELETE CANDIDATE
+  // =========================
+
   const deleteCandidate = async (id) => {
 
     try {
@@ -147,30 +251,125 @@ function Dashboard({ handleLogout }) {
     }
   };
 
-  // DOWNLOAD RESUME
-  const downloadResume = (id) => {
+// =========================
+// VIEW RESUME
+// =========================
 
-    window.open(
-      `http://localhost:8080/candidates/download/${id}`,
-      "_blank"
+const viewResume = (resumeUrl) => {
+
+  if (!resumeUrl) {
+
+    alert("Resume not found");
+
+    return;
+  }
+
+  window.open(
+    resumeUrl,
+    "_blank"
+  );
+};
+
+  // =========================
+  // EXPORT TO EXCEL
+  // =========================
+
+  const exportToExcel = () => {
+
+    const excelData = sortedCandidates.map(
+      (candidate) => ({
+
+        ID: candidate.candidateId,
+
+        Name: candidate.name,
+
+        Email: candidate.email,
+
+        Position:
+          candidate.appliedPosition,
+
+        Experience:
+          candidate.experience,
+
+        Skills: candidate.skills,
+
+        MatchPercentage:
+          candidate.score,
+
+        Rank: candidate.ranking,
+
+        Status: candidate.status,
+      })
+    );
+
+    const worksheet =
+      XLSX.utils.json_to_sheet(
+        excelData
+      );
+
+    const workbook =
+      XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(
+      workbook,
+      worksheet,
+      "Candidates"
+    );
+
+    const excelBuffer =
+      XLSX.write(workbook, {
+        bookType: "xlsx",
+        type: "array",
+      });
+
+    const data = new Blob(
+      [excelBuffer],
+      {
+        type:
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8",
+      }
+    );
+
+    saveAs(
+      data,
+      "Candidates_Report.xlsx"
     );
   };
 
-  // FILTER SEARCH
-  const filteredCandidates = candidates.filter((candidate) =>
-    candidate.name.toLowerCase().includes(search.toLowerCase()) ||
-    candidate.skills?.toLowerCase().includes(search.toLowerCase())
+  // =========================
+  // SEARCH FILTER
+  // =========================
+
+  const filteredCandidates = candidates.filter(
+    (candidate) =>
+
+      candidate.name
+        ?.toLowerCase()
+        .includes(search.toLowerCase()) ||
+
+      candidate.skills
+        ?.toLowerCase()
+        .includes(search.toLowerCase()) ||
+
+      candidate.appliedPosition
+        ?.toLowerCase()
+        .includes(search.toLowerCase())
   );
 
-  // SORT SCORE
-  const sortedCandidates = [...filteredCandidates].sort((a, b) => {
+  // =========================
+  // SORTING
+  // =========================
 
-    if (sortOrder === "high") {
-      return b.score - a.score;
-    } else {
+  const sortedCandidates = [...filteredCandidates]
+    .sort((a, b) => {
+
+      if (sortOrder === "high") {
+
+        return b.score - a.score;
+      }
+
       return a.score - b.score;
-    }
-  });
+    });
 
   return (
 
@@ -200,9 +399,13 @@ function Dashboard({ handleLogout }) {
                   ? "btn btn-light me-2"
                   : "btn btn-dark me-2"
               }
-              onClick={() => setDarkMode(!darkMode)}
+              onClick={() =>
+                setDarkMode(!darkMode)
+              }
             >
-              {darkMode ? "Light Mode ☀️" : "Dark Mode 🌙"}
+              {darkMode
+                ? "Light Mode ☀️"
+                : "Dark Mode 🌙"}
             </button>
 
             <button
@@ -223,6 +426,7 @@ function Dashboard({ handleLogout }) {
           <div className="col-md-3">
 
             <div className="card bg-primary text-white shadow">
+
               <div className="card-body text-center">
 
                 <h5>Total Candidates</h5>
@@ -230,6 +434,7 @@ function Dashboard({ handleLogout }) {
                 <h2>{totalCandidates}</h2>
 
               </div>
+
             </div>
 
           </div>
@@ -237,27 +442,15 @@ function Dashboard({ handleLogout }) {
           <div className="col-md-3">
 
             <div className="card bg-success text-white shadow">
+
               <div className="card-body text-center">
 
-                <h5>Highest Score</h5>
+                <h5>Highest Match %</h5>
 
-                <h2>{highestScore}</h2>
-
-              </div>
-            </div>
-
-          </div>
-
-          <div className="col-md-3">
-
-            <div className="card bg-warning text-dark shadow">
-              <div className="card-body text-center">
-
-                <h5>Java Developers</h5>
-
-                <h2>{javaDevelopers}</h2>
+                <h2>{highestScore}%</h2>
 
               </div>
+
             </div>
 
           </div>
@@ -265,13 +458,133 @@ function Dashboard({ handleLogout }) {
           <div className="col-md-3">
 
             <div className="card bg-info text-white shadow">
+
               <div className="card-body text-center">
 
-                <h5>Python Developers</h5>
+                <h5>Accepted</h5>
 
-                <h2>{pythonDevelopers}</h2>
+                <h2>{acceptedCandidates}</h2>
 
               </div>
+
+            </div>
+
+          </div>
+
+          <div className="col-md-3">
+
+            <div className="card bg-danger text-white shadow">
+
+              <div className="card-body text-center">
+
+                <h5>Rejected</h5>
+
+                <h2>{rejectedCandidates}</h2>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+        {/* CHARTS */}
+
+        <div className="row mb-5">
+
+          {/* BAR CHART */}
+
+          <div className="col-md-6 mb-4">
+
+            <div className="card shadow p-4 h-100">
+
+              <h4 className="mb-4 text-center">
+                Candidate Analytics
+              </h4>
+
+              <ResponsiveContainer
+                width="100%"
+                height={300}
+              >
+
+                <BarChart data={chartData}>
+
+                  <CartesianGrid strokeDasharray="3 3" />
+
+                  <XAxis dataKey="name" />
+
+                  <YAxis />
+
+                  <Tooltip />
+
+                  <Legend />
+
+                  <Bar
+                    dataKey="count"
+                    fill="#0d6efd"
+                  />
+
+                </BarChart>
+
+              </ResponsiveContainer>
+
+            </div>
+
+          </div>
+
+          {/* PIE CHART */}
+
+          <div className="col-md-6 mb-4">
+
+            <div className="card shadow p-4 h-100">
+
+              <h4 className="mb-4 text-center">
+                Selection Ratio
+              </h4>
+
+              <ResponsiveContainer
+                width="100%"
+                height={300}
+              >
+
+                <PieChart>
+
+                  <Pie
+                    data={chartData}
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={100}
+                    dataKey="count"
+                    label
+                  >
+
+                    {chartData.map(
+                      (entry, index) => (
+
+                        <Cell
+                          key={index}
+                          fill={
+                            COLORS[
+                              index %
+                              COLORS.length
+                            ]
+                          }
+                        />
+
+                      )
+                    )}
+
+                  </Pie>
+
+                  <Tooltip />
+
+                  <Legend />
+
+                </PieChart>
+
+              </ResponsiveContainer>
+
             </div>
 
           </div>
@@ -288,11 +601,14 @@ function Dashboard({ handleLogout }) {
           }
         >
 
-          <h4 className="mb-4">Upload Candidate</h4>
+          <h4 className="mb-4">
+            Upload Candidate
+          </h4>
 
           <form onSubmit={handleSubmit}>
 
             <div className="mb-3">
+
               <label>Name</label>
 
               <input
@@ -303,9 +619,11 @@ function Dashboard({ handleLogout }) {
                 onChange={handleChange}
                 required
               />
+
             </div>
 
             <div className="mb-3">
+
               <label>Email</label>
 
               <input
@@ -316,9 +634,11 @@ function Dashboard({ handleLogout }) {
                 onChange={handleChange}
                 required
               />
+
             </div>
 
             <div className="mb-3">
+
               <label>Phone Number</label>
 
               <input
@@ -329,9 +649,11 @@ function Dashboard({ handleLogout }) {
                 onChange={handleChange}
                 required
               />
+
             </div>
 
             <div className="mb-3">
+
               <label>Experience</label>
 
               <input
@@ -342,9 +664,11 @@ function Dashboard({ handleLogout }) {
                 onChange={handleChange}
                 required
               />
+
             </div>
 
             <div className="mb-3">
+
               <label>Education</label>
 
               <input
@@ -355,9 +679,54 @@ function Dashboard({ handleLogout }) {
                 onChange={handleChange}
                 required
               />
+
             </div>
 
             <div className="mb-3">
+
+              <label>Applied Position</label>
+
+              <select
+                className="form-select"
+                value={candidate.appliedPosition}
+                onChange={handlePositionChange}
+                required
+              >
+
+                <option value="">
+                  Select Position
+                </option>
+
+                {jobs.map((job) => (
+
+                  <option
+                    key={job.jobId}
+                    value={job.jobTitle}
+                  >
+                    {job.jobTitle}
+                  </option>
+
+                ))}
+
+              </select>
+
+            </div>
+
+            <div className="mb-3">
+
+              <label>Job Description</label>
+
+              <textarea
+                rows="5"
+                className="form-control"
+                value={candidate.jobDescription}
+                readOnly
+              />
+
+            </div>
+
+            <div className="mb-3">
+
               <label>Upload Resume</label>
 
               <input
@@ -366,6 +735,7 @@ function Dashboard({ handleLogout }) {
                 onChange={handleFileChange}
                 required
               />
+
             </div>
 
             <button
@@ -379,137 +749,185 @@ function Dashboard({ handleLogout }) {
 
         </div>
 
-        {/* SEARCH */}
+        {/* SEARCH + SORT */}
 
-        <div className="row mt-5">
+        <div className="row mt-5 mb-3">
 
-          <div className="col-md-6">
+          <div className="col-md-5">
 
             <input
               type="text"
-              placeholder="Search by Name or Skills"
+              placeholder="Search by Name / Skills / Position"
               className="form-control"
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) =>
+                setSearch(e.target.value)
+              }
             />
 
           </div>
 
-          <div className="col-md-6">
+          <div className="col-md-4">
 
             <select
               className="form-select"
               value={sortOrder}
-              onChange={(e) => setSortOrder(e.target.value)}
+              onChange={(e) =>
+                setSortOrder(e.target.value)
+              }
             >
+
               <option value="high">
-                Sort Score High to Low
+                Sort Match % High to Low
               </option>
 
               <option value="low">
-                Sort Score Low to High
+                Sort Match % Low to High
               </option>
 
             </select>
 
           </div>
 
+          <div className="col-md-3">
+
+            <button
+              className="btn btn-success w-100"
+              onClick={exportToExcel}
+            >
+              Download Excel
+            </button>
+
+          </div>
+
         </div>
 
-        {/* TABLE */}
+        {/* CANDIDATE TABLE */}
 
-        <div className="mt-5">
+        <div className="mt-4">
 
           <h3 className="mb-3">
             Candidate List
           </h3>
 
-          <table className="table table-bordered table-striped table-hover shadow">
+          <div className="table-responsive">
 
-            <thead className="table-dark">
+            <table className="table table-bordered table-striped table-hover shadow">
 
-              <tr>
-                <th>ID</th>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Experience</th>
-                <th>Education</th>
-                <th>Skills</th>
-                <th>Score</th>
-                <th>Rank</th>
-                <th>Resume</th>
-                <th>Action</th>
-              </tr>
+              <thead className="table-dark">
 
-            </thead>
+                <tr>
 
-            <tbody>
-
-              {sortedCandidates.map((candidate) => (
-
-                <tr key={candidate.candidateId}>
-
-                  <td>{candidate.candidateId}</td>
-
-                  <td>{candidate.name}</td>
-
-                  <td>{candidate.email}</td>
-
-                  <td>{candidate.experience} Years</td>
-
-                  <td>{candidate.education}</td>
-
-                  <td>{candidate.skills}</td>
-
-                  <td>
-
-                    <span className="badge bg-success">
-                      {candidate.score}
-                    </span>
-
-                  </td>
-
-                  <td>
-
-                    <span className="badge bg-primary">
-                      {candidate.ranking}
-                    </span>
-
-                  </td>
-
-                  <td>
-
-                    <button
-                      className="btn btn-info btn-sm"
-                      onClick={() =>
-                        downloadResume(candidate.candidateId)
-                      }
-                    >
-                      Download
-                    </button>
-
-                  </td>
-
-                  <td>
-
-                    <button
-                      className="btn btn-danger btn-sm"
-                      onClick={() =>
-                        deleteCandidate(candidate.candidateId)
-                      }
-                    >
-                      Delete
-                    </button>
-
-                  </td>
+                  <th>ID</th>
+                  <th>Name</th>
+                  <th>Position</th>
+                  <th>Email</th>
+                  <th>Experience</th>
+                  <th>Skills</th>
+                  <th>Match %</th>
+                  <th>Rank</th>
+                  <th>Status</th>
+                  <th>Resume</th>
+                  <th>Action</th>
 
                 </tr>
 
-              ))}
+              </thead>
 
-            </tbody>
+              <tbody>
 
-          </table>
+                {sortedCandidates.map((candidate) => (
+
+                  <tr key={candidate.candidateId}>
+
+                    <td>{candidate.candidateId}</td>
+
+                    <td>{candidate.name}</td>
+
+                    <td>{candidate.appliedPosition}</td>
+
+                    <td>{candidate.email}</td>
+
+                    <td>
+                      {candidate.experience} Years
+                    </td>
+
+                    <td>{candidate.skills}</td>
+
+                    <td>
+
+                      <span className="badge bg-success">
+                        {candidate.score}%
+                      </span>
+
+                    </td>
+
+                    <td>
+
+                      <span className="badge bg-primary">
+                        {candidate.ranking}
+                      </span>
+
+                    </td>
+
+                    <td>
+
+                      {candidate.status ===
+                      "Accepted" ? (
+
+                        <span className="badge bg-success">
+                          Accepted
+                        </span>
+
+                      ) : (
+
+                        <span className="badge bg-danger">
+                          Not Selected
+                        </span>
+
+                      )}
+
+                    </td>
+
+                    <td>
+
+                        <button
+                           className="btn btn-info btn-sm"
+                           onClick={() =>
+                            viewResume(
+                              candidate.resumeUrl
+                            )
+                          }
+                        >
+                          View Resume
+                        </button>
+
+                    </td>
+
+                    <td>
+
+                      <button
+                        className="btn btn-danger btn-sm"
+                        onClick={() =>
+                          deleteCandidate(
+                            candidate.candidateId
+                          )
+                        }
+                      >
+                        Delete
+                      </button>
+
+                    </td>
+
+                  </tr>
+
+                ))}
+
+              </tbody>
+
+            </table>
+
+          </div>
 
         </div>
 
