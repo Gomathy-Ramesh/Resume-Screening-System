@@ -31,79 +31,71 @@ public class AuthController {
     @Autowired
     private AdminUserRepository adminUserRepository;
 
-    // =========================================
-    // TEMP TOKEN STORAGE
-    // =========================================
-
     private final Map<String, String> resetTokens =
             new HashMap<>();
-
-    // =========================================
-    // TEMP ADMIN PASSWORD
-    // =========================================
-
 
     // =========================================
     // LOGIN
     // =========================================
 
     @PostMapping("/login")
-public ResponseEntity<?> login(
-        @RequestBody LoginRequest request
-) {
+    public ResponseEntity<?> login(
+            @RequestBody LoginRequest request
+    ) {
 
-    System.out.println("================================");
-    System.out.println("LOGIN REQUEST RECEIVED");
-    System.out.println("Username Entered : " + request.getUsername());
-    System.out.println("Password Entered : " + request.getPassword());
+        System.out.println("================================");
+        System.out.println("LOGIN REQUEST RECEIVED");
+        System.out.println("Username Entered : " + request.getUsername());
+        System.out.println("Password Entered : " + request.getPassword());
 
-    AdminUser admin =
-            adminUserRepository
-                    .findByUsername(
-                            request.getUsername()
-                    )
-                    .orElse(null);
+        AdminUser admin =
+                adminUserRepository
+                        .findByUsername(
+                                request.getUsername()
+                        )
+                        .orElse(null);
 
-    System.out.println("Admin Found : " + (admin != null));
+        System.out.println("Admin Found : " + (admin != null));
 
-    if (admin != null) {
+        if (admin != null) {
 
-        System.out.println("DB Username : " + admin.getUsername());
-        System.out.println("DB Password : " + admin.getPassword());
+            System.out.println("DB Username : " + admin.getUsername());
+            System.out.println("DB Password : " + admin.getPassword());
 
-        boolean passwordMatch =
-                admin.getPassword().trim()
-                        .equals(
-                                request.getPassword().trim()
+            boolean passwordMatch =
+                    admin.getPassword().trim()
+                            .equals(
+                                    request.getPassword().trim()
+                            );
+
+            System.out.println(
+                    "Password Match : "
+                            + passwordMatch
+            );
+
+            if (passwordMatch) {
+
+                String token =
+                        jwtService.generateToken(
+                                admin.getUsername()
                         );
 
-        System.out.println(
-                "Password Match : "
-                        + passwordMatch
-        );
+                System.out.println("LOGIN SUCCESS");
 
-        if (passwordMatch) {
-
-            String token =
-                    jwtService.generateToken(
-                            admin.getUsername()
-                    );
-
-            System.out.println("LOGIN SUCCESS");
-
-            return ResponseEntity.ok(
-                    new LoginResponse(token)
-            );
+                return ResponseEntity.ok(
+                        new LoginResponse(token)
+                );
+            }
         }
+
+        System.out.println("LOGIN FAILED");
+
+        return ResponseEntity.status(401)
+                .body(
+                        "Invalid username or password"
+                );
     }
 
-    System.out.println("LOGIN FAILED");
-
-    return ResponseEntity.status(401)
-            .body(
-                    "Invalid username or password"
-            );
-}
     // =========================================
     // FORGOT PASSWORD
     // =========================================
@@ -130,25 +122,17 @@ public ResponseEntity<?> login(
 
         try {
 
-            // Generate Token
-
             String resetToken =
                     UUID.randomUUID().toString();
-
-            // Store Token
 
             resetTokens.put(
                     resetToken,
                     email
             );
 
-            // Reset URL
-
             String resetLink =
                     "http://localhost:3000/reset-password?token="
                             + resetToken;
-
-            // Create Email
 
             SimpleMailMessage message =
                     new SimpleMailMessage();
@@ -243,31 +227,25 @@ public ResponseEntity<?> login(
                         + email
         );
 
-        // =========================================
-        // UPDATE PASSWORD
-        // =========================================
-
         AdminUser admin =
-        adminUserRepository
-                .findByEmail(email)
-                .orElse(null);
+                adminUserRepository
+                        .findByEmail(email)
+                        .orElse(null);
 
-if (admin != null) {
+        if (admin != null) {
 
-    admin.setPassword(
-            newPassword
-    );
+            admin.setPassword(
+                    newPassword
+            );
 
-    adminUserRepository.save(
-            admin
-    );
-}
+            adminUserRepository.save(
+                    admin
+            );
+        }
 
         System.out.println(
                 "Password Changed Successfully"
         );
-
-        // Remove used token
 
         resetTokens.remove(token);
 
@@ -275,5 +253,4 @@ if (admin != null) {
                 "Password updated successfully."
         );
     }
-
 }
