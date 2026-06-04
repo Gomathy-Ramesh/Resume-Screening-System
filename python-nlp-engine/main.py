@@ -703,7 +703,7 @@ async def analyze_resume(
     # =========================
 
     resumeUrl = (
-        f"http://localhost:8000/uploads/{file.filename}"
+        f"https://resume-screening-system-uhnn.onrender.com/uploads/{file.filename}"
     )
 
     print("=================================")
