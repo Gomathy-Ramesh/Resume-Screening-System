@@ -48,49 +48,62 @@ public class AuthController {
     // =========================================
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(
-            @RequestBody LoginRequest request
-    ) {
-
-        System.out.println(
-                "Username: " + request.getUsername()
-        );
-
-        System.out.println(
-                "Password: " + request.getPassword()
-        );
-
-        AdminUser admin =
-        adminUserRepository
-                .findByUsername(
-                        request.getUsername()
-                )
-                .orElse(null);
-
-if (
-        admin != null
-                &&
-        admin.getPassword().equals(
-                request.getPassword()
-        )
+public ResponseEntity<?> login(
+        @RequestBody LoginRequest request
 ) {
+
+    System.out.println("================================");
+    System.out.println("LOGIN REQUEST RECEIVED");
+    System.out.println("Username Entered : " + request.getUsername());
+    System.out.println("Password Entered : " + request.getPassword());
+
+    AdminUser admin =
+            adminUserRepository
+                    .findByUsername(
+                            request.getUsername()
+                    )
+                    .orElse(null);
+
+    System.out.println("Admin Found : " + (admin != null));
+
+    if (admin != null) {
+
+        System.out.println("DB Username : " + admin.getUsername());
+        System.out.println("DB Password : " + admin.getPassword());
+
+        boolean passwordMatch =
+                admin.getPassword().trim()
+                        .equals(
+                                request.getPassword().trim()
+                        );
+
+        System.out.println(
+                "Password Match : "
+                        + passwordMatch
+        );
+
+        if (passwordMatch) {
 
             String token =
                     jwtService.generateToken(
-                            request.getUsername()
+                            admin.getUsername()
                     );
+
+            System.out.println("LOGIN SUCCESS");
 
             return ResponseEntity.ok(
                     new LoginResponse(token)
             );
         }
-
-        return ResponseEntity.status(401)
-                .body(
-                        "Invalid username or password"
-                );
     }
 
+    System.out.println("LOGIN FAILED");
+
+    return ResponseEntity.status(401)
+            .body(
+                    "Invalid username or password"
+            );
+}
     // =========================================
     // FORGOT PASSWORD
     // =========================================
