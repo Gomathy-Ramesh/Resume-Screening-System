@@ -74,6 +74,7 @@ public class SecurityConfig {
                         // =========================
 
                         .requestMatchers(
+                                "/",
 
                                 "/auth/**",
 
