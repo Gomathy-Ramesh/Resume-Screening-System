@@ -46,7 +46,7 @@ function DashboardHome() {
 
       const response =
         await axios.get(
-          "http://localhost:8080/candidates"
+          "https://resume-screening-backend-biq3.onrender.com/candidates"
         );
 
       setCandidates(response.data);

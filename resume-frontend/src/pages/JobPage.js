@@ -49,7 +49,7 @@ function JobPage() {
 
       const response =
         await axios.get(
-          "http://localhost:8080/jobs"
+          "https://resume-screening-backend-biq3.onrender.com/jobs"
         );
 
       setJobs(response.data);
@@ -81,7 +81,7 @@ function JobPage() {
     try {
 
       await axios.post(
-        "http://localhost:8080/jobs",
+        "https://resume-screening-backend-biq3.onrender.com/jobs",
         {
           jobTitle,
           jobDescription,
@@ -112,7 +112,7 @@ function JobPage() {
     try {
 
       await axios.delete(
-        `http://localhost:8080/jobs/${id}`
+        `https://resume-screening-backend-biq3.onrender.com/jobs/${id}`
       );
 
       fetchJobs();
@@ -553,7 +553,7 @@ hover:border-violet-200
                        try {
 
                           await axios.put(
-                         `http://localhost:8080/jobs/${job.jobId}/status`,
+                         `https://resume-screening-backend-biq3.onrender.com/jobs/${job.jobId}/status`,
                           {
                               status:
                               e.target.value,

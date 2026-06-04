@@ -33,7 +33,7 @@ function RankingPage() {
 
       const response =
         await axios.get(
-          "http://localhost:8080/candidates/ranking"
+          "https://resume-screening-backend-biq3.onrender.com/candidates/ranking"
         );
 
       setCandidates(response.data);

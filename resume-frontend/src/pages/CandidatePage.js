@@ -14,6 +14,9 @@ import {
   Briefcase,
 } from "lucide-react";
 
+const API_URL =
+  "https://resume-screening-backend-biq3.onrender.com/";
+
 function CandidatePage() {
 
   // =========================
@@ -36,7 +39,7 @@ function CandidatePage() {
 
       const response =
         await axios.get(
-          "http://localhost:8080/candidates"
+          `${API_URL}/candidates`
         );
 
       setCandidates(response.data);
@@ -88,7 +91,7 @@ function CandidatePage() {
 
       await axios.put(
 
-        `http://localhost:8080/candidates/shortlist/${id}`
+        `${API_URL}/candidates/shortlist/${id}`
 
       );
 
@@ -116,7 +119,7 @@ function CandidatePage() {
 
       await axios.put(
 
-        `http://localhost:8080/candidates/select/${id}`
+        `${API_URL}/candidates/select/${id}`
 
       );
 
