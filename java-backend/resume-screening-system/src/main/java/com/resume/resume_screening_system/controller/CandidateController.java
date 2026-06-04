@@ -724,51 +724,38 @@ public String test() {
     // =========================
 
     @PutMapping("/shortlist/{id}")
-    public Candidate shortlistCandidate(
+public Candidate shortlistCandidate(
+        @PathVariable Long id
+) {
 
-            @PathVariable Long id
+    System.out.println("SHORTLIST API HIT");
 
-    ) {
+    Candidate candidate =
+            candidateRepository.findById(id)
+                    .orElseThrow(() ->
+                            new RuntimeException(
+                                    "Candidate not found"
+                            ));
 
-        Candidate candidate =
-                candidateRepository.findById(id)
-                        .orElseThrow(() ->
-                                new RuntimeException(
-                                        "Candidate not found"
-                                ));
+    System.out.println("Candidate Found: " + candidate.getName());
 
-        candidate.setCurrentStage(
-                "Shortlisted"
-        );
+    candidate.setCurrentStage("Shortlisted");
+    candidate.setStatus("Shortlisted");
+    candidate.setShortlisted(true);
 
-        candidate.setStatus(
-                "Shortlisted"
-        );
+    System.out.println("Before Email");
 
-        candidate.setShortlisted(
-                true
-        );
+    emailService.sendEmail(
+            candidate.getEmail(),
+            candidate.getName(),
+            candidate.getAppliedPosition(),
+            "Shortlisted"
+    );
 
-        // =========================
-        // SEND SHORTLIST MAIL
-        // =========================
+    System.out.println("After Email");
 
-        emailService.sendEmail(
-
-                candidate.getEmail(),
-
-                candidate.getName(),
-
-                candidate.getAppliedPosition(),
-
-                "Shortlisted"
-        );
-
-        return candidateRepository.save(
-                candidate
-        );
-    }
-
+    return candidateRepository.save(candidate);
+}
     // =========================
     // SELECT CANDIDATE
     // =========================
