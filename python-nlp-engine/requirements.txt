@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+pdfplumber
+spacy
+python-docx
+scikit-learn
+python-multipart
+numpy
