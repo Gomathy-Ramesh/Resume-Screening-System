@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 
 const API_URL =
-  "https://resume-screening-backend-biq3.onrender.com/";
+  "https://resume-screening-backend-biq3.onrender.com";
 
 function CandidatePage() {
 
