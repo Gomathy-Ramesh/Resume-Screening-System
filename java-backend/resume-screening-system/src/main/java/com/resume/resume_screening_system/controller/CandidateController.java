@@ -738,37 +738,34 @@ public Candidate shortlistCandidate(
                                     "Candidate not found"
                             ));
 
-    System.out.println("Candidate Found: " + candidate.getName());
-
     candidate.setCurrentStage("Shortlisted");
     candidate.setStatus("Shortlisted");
     candidate.setShortlisted(true);
 
-    try {
-
-        System.out.println("Before Email");
-
-        emailService.sendEmail(
-                candidate.getEmail(),
-                candidate.getName(),
-                candidate.getAppliedPosition(),
-                "Shortlisted"
-        );
-
-        System.out.println("After Email");
-
-    } catch (Exception e) {
-
-        System.out.println("EMAIL ERROR:");
-        e.printStackTrace();
-    }
-
-    System.out.println("Before Save");
-
     Candidate savedCandidate =
             candidateRepository.save(candidate);
 
-    System.out.println("After Save");
+    System.out.println("Candidate Saved");
+
+    new Thread(() -> {
+
+        try {
+
+            emailService.sendEmail(
+                    candidate.getEmail(),
+                    candidate.getName(),
+                    candidate.getAppliedPosition(),
+                    "Shortlisted"
+            );
+
+            System.out.println("Email Sent");
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+        }
+
+    }).start();
 
     return savedCandidate;
 }
@@ -806,6 +803,10 @@ public Candidate shortlistCandidate(
         // SEND SELECTION MAIL
         // =========================
 
+       new Thread(() -> {
+
+    try {
+
         emailService.sendEmail(
 
                 candidate.getEmail(),
@@ -817,10 +818,6 @@ public Candidate shortlistCandidate(
                 "Selected"
         );
 
-        // =========================
-        // SEND HR NOTIFICATION
-        // =========================
-
         emailService.sendSelectionNotificationToHR(
 
                 candidate.getName(),
@@ -831,6 +828,17 @@ public Candidate shortlistCandidate(
 
                 candidate.getScore()
         );
+
+        System.out.println("Selection Email Sent");
+
+    } catch (Exception e) {
+
+        System.out.println("Selection Email Error");
+
+        e.printStackTrace();
+    }
+
+}).start();
 
         return candidateRepository.save(
                 candidate

@@ -92,7 +92,20 @@ public class EmailService {
             );
         }
 
-        mailSender.send(message);
+        try {
+
+    System.out.println("Sending Mail To: " + toEmail);
+
+    mailSender.send(message);
+
+    System.out.println("Mail Sent Successfully");
+
+} catch (Exception e) {
+
+    System.out.println("MAIL ERROR");
+
+    e.printStackTrace();
+}
     }
 
     // =========================================
@@ -165,7 +178,7 @@ public class EmailService {
                 new SimpleMailMessage();
 
         message.setFrom(
-                "rameshgomathy35@gmail.com"
+                "samsungtvat104@gmail.com"
         );
 
         message.setTo(email);
