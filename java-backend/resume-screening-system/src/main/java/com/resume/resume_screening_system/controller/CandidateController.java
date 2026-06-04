@@ -76,7 +76,15 @@ public class CandidateController {
 
         return candidates;
     }
+// =========================
+// TEST ENDPOINT
+// =========================
 
+@GetMapping("/test")
+public String test() {
+
+    return "WORKING";
+}
     // =========================
     // GET CANDIDATE BY ID
     // =========================
