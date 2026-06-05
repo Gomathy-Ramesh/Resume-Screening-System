@@ -6,13 +6,13 @@ import jakarta.mail.search.FlagTerm;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
+// import org.springframework.scheduling.annotation.Scheduled;
+// import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.util.Properties;
 
-@Service
+//@Service
 public class EmailFetchService {
 
     @Value("${spring.mail.username}")
@@ -25,10 +25,10 @@ public class EmailFetchService {
     private ResumeProcessorService resumeProcessorService;
 
     // =========================
-    // RUN EVERY 1 MINUTE
+    // DISABLED EMAIL FETCH SERVICE
     // =========================
 
-    @Scheduled(fixedRate = 60000)
+    //@Scheduled(fixedRate = 60000)
     public void fetchEmails() {
 
         try {
@@ -38,7 +38,7 @@ public class EmailFetchService {
             );
 
             System.out.println(
-                    "CHECKING EMAILS..."
+                    "EMAIL FETCH SERVICE DISABLED"
             );
 
             System.out.println(
@@ -77,10 +77,6 @@ public class EmailFetchService {
 
             inbox.open(Folder.READ_WRITE);
 
-            // =========================
-            // FETCH UNREAD EMAILS
-            // =========================
-
             Message[] messages =
                     inbox.search(
 
@@ -94,34 +90,12 @@ public class EmailFetchService {
                             )
                     );
 
-            System.out.println(
-                    "Unread Emails Found: "
-                            + messages.length
-            );
-
-            // =========================
-            // LOOP EMAILS
-            // =========================
-
             for (Message message : messages) {
 
                 try {
 
-                    System.out.println(
-                            "---------------------------------"
-                    );
-
-                    System.out.println(
-                            "EMAIL SUBJECT: "
-                                    + message.getSubject()
-                    );
-
                     String appliedPosition =
                             message.getSubject();
-
-                    // =========================
-                    // CHECK MULTIPART EMAIL
-                    // =========================
 
                     if (
                             message.isMimeType(
@@ -132,10 +106,6 @@ public class EmailFetchService {
                         Multipart multipart =
                                 (Multipart) message.getContent();
 
-                        // =========================
-                        // LOOP ATTACHMENTS
-                        // =========================
-
                         for (
                                 int i = 0;
                                 i < multipart.getCount();
@@ -144,10 +114,6 @@ public class EmailFetchService {
 
                             BodyPart bodyPart =
                                     multipart.getBodyPart(i);
-
-                            // =========================
-                            // ONLY ATTACHMENTS
-                            // =========================
 
                             if (
                                     Part.ATTACHMENT.equalsIgnoreCase(
@@ -161,15 +127,6 @@ public class EmailFetchService {
                                 String fileName =
                                         mimePart.getFileName();
 
-                                System.out.println(
-                                        "Attachment Found: "
-                                                + fileName
-                                );
-
-                                // =========================
-                                // ONLY PDF / DOCX
-                                // =========================
-
                                 if (
                                         fileName != null
                                                 &&
@@ -180,27 +137,13 @@ public class EmailFetchService {
                                                 )
                                 ) {
 
-                                    // =========================
-                                    // CREATE UPLOAD FOLDER
-                                    // =========================
-
                                     File uploadDir =
                                             new File("uploads");
 
                                     if (!uploadDir.exists()) {
 
-                                        boolean created =
-                                                uploadDir.mkdirs();
-
-                                        System.out.println(
-                                                "Uploads Folder Created: "
-                                                        + created
-                                        );
+                                        uploadDir.mkdirs();
                                     }
-
-                                    // =========================
-                                    // SAVE RESUME
-                                    // =========================
 
                                     File savedFile =
                                             new File(
@@ -212,88 +155,33 @@ public class EmailFetchService {
 
                                     mimePart.saveFile(savedFile);
 
-                                    System.out.println(
-                                            "Resume Saved Successfully"
-                                    );
-
-                                    System.out.println(
-                                            savedFile.getAbsolutePath()
-                                    );
-
-                                    // =========================
-                                    // PROCESS RESUME
-                                    // =========================
-
                                     resumeProcessorService.processResume(
 
                                             savedFile,
 
                                             appliedPosition
                                     );
-
-                                    System.out.println(
-                                            "Resume Processing Completed"
-                                    );
-                                }
-
-                                else {
-
-                                    System.out.println(
-                                            "Skipped Non Resume File"
-                                    );
                                 }
                             }
                         }
                     }
-
-                    // =========================
-                    // MARK EMAIL AS READ
-                    // =========================
 
                     message.setFlag(
                             Flags.Flag.SEEN,
                             true
                     );
 
-                    System.out.println(
-                            "Email Marked As Read"
-                    );
-
                 } catch (Exception emailException) {
-
-                    System.out.println(
-                            "ERROR PROCESSING EMAIL"
-                    );
 
                     emailException.printStackTrace();
                 }
             }
 
-            // =========================
-            // CLOSE CONNECTIONS
-            // =========================
-
             inbox.close(false);
 
             store.close();
 
-            System.out.println(
-                    "================================="
-            );
-
-            System.out.println(
-                    "EMAIL FETCH COMPLETED"
-            );
-
-            System.out.println(
-                    "================================="
-            );
-
         } catch (Exception e) {
-
-            System.out.println(
-                    "EMAIL FETCH FAILED"
-            );
 
             e.printStackTrace();
         }
