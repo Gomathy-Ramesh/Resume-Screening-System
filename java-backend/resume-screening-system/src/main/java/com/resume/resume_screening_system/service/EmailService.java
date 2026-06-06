@@ -1,6 +1,7 @@
 package com.resume.resume_screening_system.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
@@ -10,6 +11,9 @@ public class EmailService {
 
     @Autowired
     private JavaMailSender mailSender;
+
+    @Value("${GMAIL_EMAIL}")
+    private String fromEmail;
 
     // =========================================
     // CANDIDATE EMAIL
@@ -30,9 +34,7 @@ public class EmailService {
         SimpleMailMessage message =
                 new SimpleMailMessage();
 
-        message.setFrom(
-                "rameshgomathy35@gmail.com"
-        );
+        message.setFrom(fromEmail);
 
         message.setTo(toEmail);
 
@@ -92,11 +94,22 @@ public class EmailService {
             );
         }
 
-        try {
+       try {
 
     System.out.println("Sending Mail To: " + toEmail);
 
+    System.out.println("Trying SMTP Connection...");
+
+    System.out.println("FROM EMAIL = " + fromEmail);
+
+    System.out.println(
+            "APP PASSWORD LOADED = "
+                    + (System.getenv("GMAIL_APP_PASSWORD") != null)
+    );
+
     mailSender.send(message);
+
+    System.out.println("SMTP Success");
 
     System.out.println("Mail Sent Successfully");
 
@@ -127,9 +140,7 @@ public class EmailService {
         SimpleMailMessage hrMessage =
                 new SimpleMailMessage();
 
-        hrMessage.setFrom(
-                "rameshgomathy35@gmail.com"
-        );
+        hrMessage.setFrom(fromEmail);
 
         hrMessage.setTo(
                 "resumeiqscreening@gmail.com"
@@ -177,9 +188,7 @@ public class EmailService {
         SimpleMailMessage message =
                 new SimpleMailMessage();
 
-        message.setFrom(
-                "samsungtvat104@gmail.com"
-        );
+        message.setFrom(fromEmail);
 
         message.setTo(email);
 

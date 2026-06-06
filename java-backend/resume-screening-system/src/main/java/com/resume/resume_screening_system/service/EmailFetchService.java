@@ -6,184 +6,262 @@ import jakarta.mail.search.FlagTerm;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-// import org.springframework.scheduling.annotation.Scheduled;
-// import org.springframework.stereotype.Service;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.util.Properties;
 
-//@Service
+@Service
 public class EmailFetchService {
 
-    @Value("${spring.mail.username}")
-    private String username;
+public EmailFetchService() {
 
-    @Value("${spring.mail.password}")
-    private String password;
+    System.out.println(
+            "EmailFetchService INITIALIZED"
+    );
+}
 
-    @Autowired
-    private ResumeProcessorService resumeProcessorService;
+@Value("${GMAIL_EMAIL}")
+private String username;
 
-    // =========================
-    // DISABLED EMAIL FETCH SERVICE
-    // =========================
+@Value("${GMAIL_APP_PASSWORD}")
+private String password;
 
-    //@Scheduled(fixedRate = 60000)
-    public void fetchEmails() {
+@Autowired
+private ResumeProcessorService resumeProcessorService;
 
-        try {
+// =========================
+// FETCH EMAILS EVERY 1 MINUTE
+// =========================
 
-            System.out.println(
-                    "================================="
-            );
+@Scheduled(fixedRate = 60000)
+public void fetchEmails() {
 
-            System.out.println(
-                    "EMAIL FETCH SERVICE DISABLED"
-            );
+    System.out.println(
+            "SCHEDULER RUNNING"
+    );
 
-            System.out.println(
-                    "================================="
-            );
+    try {
 
-            // =========================
-            // GMAIL IMAP CONFIG
-            // =========================
+        System.out.println(
+                "================================="
+        );
 
-            Properties props = new Properties();
+        System.out.println(
+                "CHECKING GMAIL INBOX"
+        );
 
-            props.put(
-                    "mail.store.protocol",
-                    "imaps"
-            );
+        System.out.println(
+                "================================="
+        );
 
-            Session session =
-                    Session.getInstance(props);
+        // =========================
+        // GMAIL IMAP CONFIG
+        // =========================
 
-            Store store =
-                    session.getStore("imaps");
+        Properties props = new Properties();
 
-            store.connect(
-                    "imap.gmail.com",
-                    username,
-                    password
-            );
+        props.put(
+                "mail.store.protocol",
+                "imaps"
+        );
 
-            // =========================
-            // OPEN INBOX
-            // =========================
+        Session session =
+                Session.getInstance(props);
 
-            Folder inbox =
-                    store.getFolder("INBOX");
+        Store store =
+                session.getStore("imaps");
 
-            inbox.open(Folder.READ_WRITE);
+        store.connect(
+                "imap.gmail.com",
+                username,
+                password
+        );
 
-            Message[] messages =
-                    inbox.search(
+        // =========================
+        // OPEN INBOX
+        // =========================
 
-                            new FlagTerm(
+        Folder inbox =
+                store.getFolder("INBOX");
 
-                                    new Flags(
-                                            Flags.Flag.SEEN
-                                    ),
+        inbox.open(Folder.READ_WRITE);
 
-                                    false
-                            )
-                    );
+        // =========================
+        // FETCH UNREAD EMAILS
+        // =========================
 
-            for (Message message : messages) {
+        Message[] messages =
+                inbox.search(
 
-                try {
+                        new FlagTerm(
 
-                    String appliedPosition =
-                            message.getSubject();
+                                new Flags(
+                                        Flags.Flag.SEEN
+                                ),
 
-                    if (
-                            message.isMimeType(
-                                    "multipart/*"
-                            )
+                                false
+                        )
+                );
+
+        System.out.println(
+                "Unread Emails Found: "
+                        + messages.length
+        );
+
+        // =========================
+        // PROCESS EMAILS
+        // =========================
+
+        for (Message message : messages) {
+
+            try {
+
+                System.out.println(
+                        "================================="
+                );
+
+                System.out.println(
+                        "EMAIL SUBJECT: "
+                                + message.getSubject()
+                );
+
+                String appliedPosition =
+                        message.getSubject();
+
+                if (
+                        message.isMimeType(
+                                "multipart/*"
+                        )
+                ) {
+
+                    Multipart multipart =
+                            (Multipart) message.getContent();
+
+                    for (
+                            int i = 0;
+                            i < multipart.getCount();
+                            i++
                     ) {
 
-                        Multipart multipart =
-                                (Multipart) message.getContent();
+                        BodyPart bodyPart =
+                                multipart.getBodyPart(i);
 
-                        for (
-                                int i = 0;
-                                i < multipart.getCount();
-                                i++
+                        if (
+                                Part.ATTACHMENT.equalsIgnoreCase(
+                                        bodyPart.getDisposition()
+                                )
                         ) {
 
-                            BodyPart bodyPart =
-                                    multipart.getBodyPart(i);
+                            MimeBodyPart mimePart =
+                                    (MimeBodyPart) bodyPart;
+
+                            String fileName =
+                                    mimePart.getFileName();
+
+                            System.out.println(
+                                    "Attachment Found: "
+                                            + fileName
+                            );
 
                             if (
-                                    Part.ATTACHMENT.equalsIgnoreCase(
-                                            bodyPart.getDisposition()
-                                    )
+                                    fileName != null
+                                            &&
+                                            (
+                                                    fileName.toLowerCase().endsWith(".pdf")
+                                                            ||
+                                                            fileName.toLowerCase().endsWith(".docx")
+                                            )
                             ) {
 
-                                MimeBodyPart mimePart =
-                                        (MimeBodyPart) bodyPart;
+                                File uploadDir =
+                                        new File("uploads");
 
-                                String fileName =
-                                        mimePart.getFileName();
+                                if (!uploadDir.exists()) {
 
-                                if (
-                                        fileName != null
-                                                &&
-                                                (
-                                                        fileName.toLowerCase().endsWith(".pdf")
-                                                                ||
-                                                                fileName.toLowerCase().endsWith(".docx")
-                                                )
-                                ) {
-
-                                    File uploadDir =
-                                            new File("uploads");
-
-                                    if (!uploadDir.exists()) {
-
-                                        uploadDir.mkdirs();
-                                    }
-
-                                    File savedFile =
-                                            new File(
-                                                    uploadDir,
-                                                    System.currentTimeMillis()
-                                                            + "_"
-                                                            + fileName
-                                            );
-
-                                    mimePart.saveFile(savedFile);
-
-                                    resumeProcessorService.processResume(
-
-                                            savedFile,
-
-                                            appliedPosition
-                                    );
+                                    uploadDir.mkdirs();
                                 }
+
+                                File savedFile =
+                                        new File(
+                                                uploadDir,
+                                                System.currentTimeMillis()
+                                                        + "_"
+                                                        + fileName
+                                        );
+
+                                mimePart.saveFile(savedFile);
+
+                                System.out.println(
+                                        "Resume Saved Successfully"
+                                );
+
+                                resumeProcessorService.processResume(
+
+                                        savedFile,
+
+                                        appliedPosition
+                                );
+
+                                System.out.println(
+                                        "Resume Processed Successfully"
+                                );
+                            }
+
+                            else {
+
+                                System.out.println(
+                                        "Skipped Non Resume File"
+                                );
                             }
                         }
                     }
-
-                    message.setFlag(
-                            Flags.Flag.SEEN,
-                            true
-                    );
-
-                } catch (Exception emailException) {
-
-                    emailException.printStackTrace();
                 }
+
+                // =========================
+                // MARK EMAIL AS READ
+                // =========================
+
+                message.setFlag(
+                        Flags.Flag.SEEN,
+                        true
+                );
+
+                System.out.println(
+                        "Email Marked As Read"
+                );
+
+            } catch (Exception emailException) {
+
+                System.out.println(
+                        "ERROR PROCESSING EMAIL"
+                );
+
+                emailException.printStackTrace();
             }
-
-            inbox.close(false);
-
-            store.close();
-
-        } catch (Exception e) {
-
-            e.printStackTrace();
         }
+
+        // =========================
+        // CLOSE CONNECTIONS
+        // =========================
+
+        inbox.close(false);
+
+        store.close();
+
+        System.out.println(
+                "EMAIL FETCH COMPLETED"
+        );
+
+    } catch (Exception e) {
+
+        System.out.println(
+                "EMAIL FETCH FAILED"
+        );
+
+        e.printStackTrace();
     }
+}
+
 }
