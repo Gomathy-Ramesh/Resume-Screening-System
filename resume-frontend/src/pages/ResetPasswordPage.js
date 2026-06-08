@@ -7,10 +7,8 @@ function ResetPasswordPage() {
 
   const [token, setToken] = useState("");
   const [password, setPassword] = useState("");
+  const [email, setEmail] = useState(""); // ✅ added
 
-  // =========================
-  // AUTO-READ TOKEN FROM URL
-  // =========================
   useEffect(() => {
     const urlToken = searchParams.get("token");
     if (urlToken) {
@@ -18,16 +16,14 @@ function ResetPasswordPage() {
     }
   }, [searchParams]);
 
-  // =========================
-  // RESET PASSWORD API CALL
-  // =========================
   const handleReset = async () => {
     try {
       const response = await axios.post(
-        "https://resume-screening-backend-biq3.onrender.com/auth/forgot-password",
+        "https://resume-screening-backend-biq3.onrender.com/auth/reset-password",
         {
           token,
           newPassword: password,
+          email: email // ✅ added
         }
       );
 
@@ -43,7 +39,6 @@ function ResetPasswordPage() {
         Reset Password
       </h2>
 
-      {/* TOKEN (auto-filled but editable) */}
       <input
         type="text"
         placeholder="Token"
@@ -52,7 +47,15 @@ function ResetPasswordPage() {
         className="border p-2 mb-3 block w-full"
       />
 
-      {/* NEW PASSWORD */}
+      {/* ✅ EMAIL FIELD */}
+      <input
+        type="email"
+        placeholder="Enter your email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        className="border p-2 mb-3 block w-full"
+      />
+
       <input
         type="password"
         placeholder="New Password"
