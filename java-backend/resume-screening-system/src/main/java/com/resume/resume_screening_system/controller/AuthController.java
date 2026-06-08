@@ -6,8 +6,7 @@ import com.resume.resume_screening_system.security.JwtService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
+import com.resume.resume_screening_system.service.EmailService;
 import org.springframework.web.bind.annotation.*;
 
 import com.resume.resume_screening_system.entity.AdminUser;
@@ -26,7 +25,7 @@ public class AuthController {
     private JwtService jwtService;
 
     @Autowired
-    private JavaMailSender mailSender;
+    private EmailService emailService;
 
     @Autowired
     private AdminUserRepository adminUserRepository;
@@ -134,31 +133,7 @@ public class AuthController {
                     "http://localhost:3000/reset-password?token="
                             + resetToken;
 
-            SimpleMailMessage message =
-                    new SimpleMailMessage();
-
-            message.setFrom(
-                    "resumeiqscreening@gmail.com"
-            );
-
-            message.setTo(email);
-
-            message.setSubject(
-                    "Selectra Password Reset"
-            );
-
-            message.setText(
-                    "Hello,\n\n"
-                            + "We received a password reset request.\n\n"
-                            + "Click the link below to reset your password:\n\n"
-                            + resetLink
-                            + "\n\n"
-                            + "If you did not request this request, please ignore this email.\n\n"
-                            + "Regards,\n"
-                            + "Selectra Team"
-            );
-
-            mailSender.send(message);
+            emailService.sendForgotPasswordEmail(email);
 
             System.out.println(
                     "Reset Token: "
