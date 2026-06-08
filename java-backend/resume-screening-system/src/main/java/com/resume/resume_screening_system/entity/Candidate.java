@@ -6,11 +6,6 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "candidates")
 public class Candidate {
-
-    // =========================
-    // PRIMARY KEY
-    // =========================
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long candidateId;

@@ -15,7 +15,6 @@ import java.io.File;
 
 import java.time.LocalDateTime;
 import java.util.List;
-
 @Service
 public class ResumeProcessorService {
 
@@ -150,25 +149,10 @@ public class ResumeProcessorService {
                                 job.getJobTitle()
                         );
 
-                // DEBUG
-
-                System.out.println(
-                        "PYTHON RESULT: "
-                                + result
-                );
-
-                // =========================
-                // NULL CHECK
-                // =========================
-
                 if (result == null) {
 
                     continue;
                 }
-
-                // =========================
-                // GET VALUES
-                // =========================
 
                 Double currentScore =
                         result.getScore();

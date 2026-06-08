@@ -115,9 +115,19 @@ public class EmailService {
 
 } catch (Exception e) {
 
-    System.out.println("MAIL ERROR");
+    System.out.println("=================================");
+    System.out.println("MAIL ERROR OCCURRED");
+    System.out.println("Exception Class : " + e.getClass().getName());
+    System.out.println("Message         : " + e.getMessage());
 
+    if (e.getCause() != null) {
+        System.out.println("Cause           : " + e.getCause());
+    }
+
+    System.out.println("===== FULL STACK TRACE =====");
     e.printStackTrace();
+
+    System.out.println("=================================");
 }
     }
 

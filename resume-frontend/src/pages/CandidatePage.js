@@ -50,9 +50,6 @@ function CandidatePage() {
     }
   };
 
-  // =========================
-  // LOAD DATA
-  // =========================
 
   useEffect(() => {
 
@@ -93,10 +90,6 @@ function CandidatePage() {
 
         `${API_URL}/candidates/shortlist/${id}`
 
-      );
-
-      alert(
-        "Candidate Shortlisted"
       );
 
       fetchCandidates();

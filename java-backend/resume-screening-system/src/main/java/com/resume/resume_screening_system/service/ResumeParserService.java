@@ -29,9 +29,6 @@ public class ResumeParserService {
         String fileName =
                 file.getName()
                         .toLowerCase();
-
-        // PDF
-
         if (fileName.endsWith(".pdf")) {
 
             PDDocument document =
@@ -47,9 +44,6 @@ public class ResumeParserService {
 
             return text;
         }
-
-        // DOCX
-
         else if (
                 fileName.endsWith(".docx")
         ) {
@@ -143,10 +137,6 @@ public class ResumeParserService {
                     emailMatcher.group();
         }
 
-        // =========================
-        // PHONE
-        // =========================
-
         String phone = "";
 
         Pattern phonePattern =
@@ -186,14 +176,8 @@ public class ResumeParserService {
                             expMatcher.group(1)
                     );
         }
-
-        // =========================
-        // SKILLS
-        // =========================
-
         List<String> skillList =
                 Arrays.asList(
-
                         "java",
                         "spring",
                         "spring boot",
@@ -212,7 +196,6 @@ public class ResumeParserService {
                         "tensorflow",
                         "rest api"
                 );
-
         List<String> foundSkills =
                 new ArrayList<>();
 

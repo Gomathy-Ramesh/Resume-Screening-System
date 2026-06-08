@@ -130,54 +130,8 @@ public class PythonNlpService {
                             PythonResponse.class
                     );
 
-            // =========================
-            // RESPONSE
-            // =========================
-
             PythonResponse result =
                     response.getBody();
-
-            if (result == null) {
-
-                System.out.println(
-                        "FASTAPI RESPONSE IS NULL"
-                );
-
-                return null;
-            }
-
-            // =========================
-            // DEBUG LOGS
-            // =========================
-
-            System.out.println(
-                    "FASTAPI RESPONSE RECEIVED"
-            );
-
-            System.out.println(
-                    "Candidate Name: "
-                            + result.getName()
-            );
-
-            System.out.println(
-                    "Email: "
-                            + result.getEmail()
-            );
-
-            System.out.println(
-                    "Score: "
-                            + result.getScore()
-            );
-
-            System.out.println(
-                    "Matched Skills: "
-                            + result.getMatchedSkillsCount()
-            );
-
-            System.out.println(
-                    "================================="
-            );
-
             return result;
 
         } catch (Exception e) {
