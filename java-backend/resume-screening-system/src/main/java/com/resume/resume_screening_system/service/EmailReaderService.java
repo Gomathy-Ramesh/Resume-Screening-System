@@ -2,6 +2,7 @@ package com.resume.resume_screening_system.service;
 
 import jakarta.mail.*;
 import jakarta.mail.search.FlagTerm;
+import org.springframework.beans.factory.annotation.Value;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,12 +23,11 @@ public class EmailReaderService {
     // GMAIL CONFIG
     // =========================
 
-    private final String username =
-            "samsungtvat104@gmail.com";
+    @Value("${gmail.reader.email}")
+    private String username;
 
-    private final String password =
-            "ngfpxyawsjuhbwph";
-
+    @Value("${gmail.reader.password}")
+   private String password;
     // =========================
     // READ EMAILS
     // =========================

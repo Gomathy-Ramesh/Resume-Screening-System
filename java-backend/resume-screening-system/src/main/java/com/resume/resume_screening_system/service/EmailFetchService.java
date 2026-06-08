@@ -22,10 +22,10 @@ public EmailFetchService() {
     );
 }
 
-@Value("${GMAIL_EMAIL}")
+@Value("${gmail.reader.email}")
 private String username;
 
-@Value("${GMAIL_APP_PASSWORD}")
+@Value("${gmail.reader.password}")
 private String password;
 
 @Autowired
