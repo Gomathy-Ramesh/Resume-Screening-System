@@ -10,8 +10,10 @@ import com.sendgrid.helpers.mail.objects.Email;
 
 import org.springframework.stereotype.Service;
 
+
 @Service
 public class EmailService {
+        
 
     @Value("${sendgrid.api.key}")
     private String sendGridApiKey;
@@ -62,9 +64,14 @@ public class EmailService {
                 sendGrid.api(request);
 
         System.out.println(
-                "SendGrid Status Code : "
-                        + response.getStatusCode()
-        );
+        "SendGrid Status Code : "
+                + response.getStatusCode()
+);
+
+System.out.println(
+        "SendGrid Response : "
+                + response.getBody()
+);
 
     } catch (Exception e) {
 
@@ -159,14 +166,14 @@ public class EmailService {
 
     System.out.println("Sending Mail To: " + toEmail);
 
-    System.out.println("Trying SMTP Connection...");
+    System.out.println("Sending Email Through SendGrid...");
 
     System.out.println("FROM EMAIL = " + fromEmail);
 
     System.out.println(
-            "APP PASSWORD LOADED = "
-                    + (System.getenv("GMAIL_APP_PASSWORD") != null)
-    );
+        "SENDGRID API LOADED = "
+                + (sendGridApiKey != null)
+);
 
     sendMailUsingSendGrid(
         toEmail,
@@ -174,7 +181,7 @@ public class EmailService {
         message.getText()
 );
 
-    System.out.println("SMTP Success");
+    System.out.println("SendGrid Request Completed");
 
     System.out.println("Mail Sent Successfully");
 
