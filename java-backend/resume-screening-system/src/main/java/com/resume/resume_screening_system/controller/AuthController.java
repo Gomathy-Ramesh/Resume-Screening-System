@@ -130,7 +130,7 @@ public class AuthController {
             );
 
             String resetLink =
-                   "https://resume-screening-frontend-r2ve.onrender.com/reset-password?token="
+                   "https://resume-screening-frontend-ojtd.onrender.com/reset-password?token="
                     + resetToken;
 
             emailService.sendForgotPasswordEmail(
