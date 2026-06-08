@@ -130,10 +130,13 @@ public class AuthController {
             );
 
             String resetLink =
-                    "http://localhost:3000/reset-password?token="
-                            + resetToken;
+                   "https://resume-screening-frontend-r2ve.onrender.com/reset-password?token="
+                    + resetToken;
 
-            emailService.sendForgotPasswordEmail(email);
+            emailService.sendForgotPasswordEmail(
+                    email,
+                    resetLink
+            );
 
             System.out.println(
                     "Reset Token: "
@@ -195,37 +198,53 @@ public class AuthController {
         }
 
         String email =
-                resetTokens.get(token);
+        resetTokens.get(token);
 
-        System.out.println(
-                "Password reset for: "
-                        + email
-        );
+System.out.println(
+        "EMAIL : " + email
+);
 
-        AdminUser admin =
-                adminUserRepository
-                        .findByEmail(email)
-                        .orElse(null);
+AdminUser admin =
+        adminUserRepository
+                .findByEmail(email)
+                .orElse(null);
 
-        if (admin != null) {
+System.out.println(
+        "ADMIN FOUND : "
+                + (admin != null)
+);
 
-            admin.setPassword(
-                    newPassword
+if (admin == null) {
+
+    return ResponseEntity
+            .badRequest()
+            .body(
+                    "Admin account not found."
             );
+}
 
-            adminUserRepository.save(
-                    admin
-            );
-        }
+System.out.println(
+        "OLD PASSWORD : "
+                + admin.getPassword()
+);
 
-        System.out.println(
-                "Password Changed Successfully"
-        );
+admin.setPassword(
+        newPassword
+);
 
-        resetTokens.remove(token);
+adminUserRepository.save(
+        admin
+);
 
-        return ResponseEntity.ok(
-                "Password updated successfully."
-        );
+System.out.println(
+        "NEW PASSWORD SAVED : "
+                + admin.getPassword()
+);
+
+resetTokens.remove(token);
+
+return ResponseEntity.ok(
+        "Password updated successfully."
+);
     }
 }

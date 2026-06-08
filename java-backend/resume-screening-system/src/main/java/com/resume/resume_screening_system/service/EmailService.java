@@ -258,41 +258,44 @@ System.out.println(
     // =========================================
 
     public void sendForgotPasswordEmail(
-            String email
-    ) {
+        String email,
+        String resetLink
+) {
 
-        SimpleMailMessage message =
-                new SimpleMailMessage();
+    SimpleMailMessage message =
+            new SimpleMailMessage();
 
-        message.setFrom(fromEmail);
+    message.setFrom(fromEmail);
 
-        message.setTo(email);
+    message.setTo(email);
 
-        message.setSubject(
-                "Password Reset Request"
-        );
+    message.setSubject(
+            "Password Reset Request"
+    );
 
-        message.setText(
+    message.setText(
 
-                "Hello,\n\n"
+            "Hello,\n\n"
 
-                        + "A password reset request was received "
-                        + "for your Selectra Admin account.\n\n"
+            + "We received a request to reset your password.\n\n"
 
-                        + "Username : admin\n"
-                        + "Password : admin123\n\n"
+            + "Click the link below to reset your password:\n\n"
 
-                        + "Please login and change your password "
-                        + "after signing in.\n\n"
+            + resetLink
 
-                        + "Regards,\n"
-                        + "Selectra Team"
-        );
+            + "\n\n"
 
-        sendMailUsingSendGrid(
-        email,
-        message.getSubject(),
-        message.getText()
-);
-    }
+            + "If you did not request this, you can safely ignore this email.\n\n"
+
+            + "Regards,\n"
+
+            + "Resume Screening Team"
+    );
+
+    sendMailUsingSendGrid(
+            email,
+            message.getSubject(),
+            message.getText()
+    );
+}
 }
