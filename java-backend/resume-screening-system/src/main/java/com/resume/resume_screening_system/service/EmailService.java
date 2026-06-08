@@ -215,7 +215,7 @@ System.out.println(
         hrMessage.setFrom(fromEmail);
 
         hrMessage.setTo(
-                "anbusubha41359@gmail.com"
+                "resumeiqscreening@gmail.com"
         );
 
         hrMessage.setSubject(
