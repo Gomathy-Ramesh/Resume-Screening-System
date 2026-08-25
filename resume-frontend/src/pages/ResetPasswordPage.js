@@ -19,7 +19,7 @@ function ResetPasswordPage() {
   const handleReset = async () => {
     try {
       const response = await axios.post(
-        "https://resume-screening-backend-biq3.onrender.com/auth/reset-password",
+        "http://localhost:8080/auth/forgot-password",
         {
           token,
           newPassword: password,

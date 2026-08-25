@@ -14,23 +14,29 @@ import {
   Briefcase,
   LogOut,
   Menu,
+  Brain,
+  Calendar,
 } from "lucide-react";
 
 import { Button } from "./ui/button";
 
 function Navbar({ handleLogout }) {
 
-  const location =
-    useLocation();
+  const location = useLocation();
 
-  const [isOpen, setIsOpen] =
-    useState(true);
+  const [isOpen, setIsOpen] = useState(true);
 
-  // =========================
+
+  // ======================================================
   // MENU ITEMS
-  // =========================
+  // ======================================================
 
   const menuItems = [
+
+    // ====================================================
+    // DASHBOARD
+    // ====================================================
+
     {
       name: "Dashboard",
       path: "/dashboard",
@@ -38,6 +44,11 @@ function Navbar({ handleLogout }) {
         <LayoutDashboard size={20} />
       ),
     },
+
+
+    // ====================================================
+    // CANDIDATES
+    // ====================================================
 
     {
       name: "Candidates",
@@ -47,6 +58,11 @@ function Navbar({ handleLogout }) {
       ),
     },
 
+
+    // ====================================================
+    // RANKING
+    // ====================================================
+
     {
       name: "Ranking",
       path: "/ranking",
@@ -55,6 +71,11 @@ function Navbar({ handleLogout }) {
       ),
     },
 
+
+    // ====================================================
+    // JOBS
+    // ====================================================
+
     {
       name: "Jobs",
       path: "/jobs",
@@ -62,39 +83,110 @@ function Navbar({ handleLogout }) {
         <Briefcase size={20} />
       ),
     },
+
+
+    // ====================================================
+    // SKILL GAP ANALYSIS
+    // ====================================================
+
+    {
+      name: "Skill Gap Analysis",
+      path: "/skills",
+      icon: (
+        <Brain size={20} />
+      ),
+    },
+
+
+    // ====================================================
+    // INTERVIEWS
+    // ====================================================
+
+    {
+      name: "Interviews",
+      path: "/interviews",
+      icon: (
+        <Calendar size={20} />
+      ),
+    },
+
   ];
+
+
+  // ======================================================
+  // CHECK ACTIVE ROUTE
+  // ======================================================
+
+  const isMenuItemActive = (path) => {
+
+    if (path === "/dashboard") {
+      return location.pathname === "/dashboard";
+    }
+
+    return (
+      location.pathname === path ||
+      location.pathname.startsWith(
+        `${path}/`
+      )
+    );
+  };
+
+
+  // ======================================================
+  // RENDER
+  // ======================================================
 
   return (
 
     <aside
       className={`
-  h-screen
-  bg-white
-  border-r
-  border-slate-200
-  flex
-  flex-col
-  justify-between
-  shadow-[2px_0_12px_rgba(15,23,42,0.04)]
-  transition-all
-  duration-300
-  overflow-hidden
+        relative
+        h-screen
+        bg-white
+        border-r
+        border-slate-200
+        flex
+        flex-col
+        justify-between
+        shadow-[2px_0_12px_rgba(15,23,42,0.04)]
+        transition-all
+        duration-300
+        overflow-hidden
 
-  ${isOpen ? "w-[240px]" : "w-[80px]"}
-`}
+        ${isOpen ? "w-[240px]" : "w-[80px]"}
+      `}
     >
 
-      {/* Decorative glow */}
+      {/* ==================================================
+          DECORATIVE GLOW
+      ================================================== */}
 
-      <div className="absolute top-0 left-0 w-full h-40 bg-gradient-to-b from-violet-100/60 to-transparent pointer-events-none"></div>
+      <div
+        className="
+          absolute
+          top-0
+          left-0
+          w-full
+          h-40
+          bg-gradient-to-b
+          from-blue-100/50
+          via-cyan-50/40
+          to-transparent
+          pointer-events-none
+        "
+      />
 
-      {/* =========================
+
+      {/* ==================================================
           TOP
-      ========================= */}
+      ================================================== */}
 
       <div className="relative z-10">
 
-        {/* TOGGLE */}
+
+        {/* ==================================================
+            TOGGLE BUTTON
+        ================================================== */}
 
         <div className="flex justify-end p-4">
 
@@ -111,23 +203,28 @@ function Navbar({ handleLogout }) {
               justify-center
               bg-white
               border
-              border-violet-100
+              border-cyan-100
               text-slate-700
               transition-all
               duration-300
-              hover:bg-violet-50
+              hover:bg-cyan-50
+              hover:border-cyan-200
+              hover:text-blue-600
               hover:shadow-lg
               hover:scale-105
             "
           >
+
             <Menu size={22} />
+
           </button>
 
         </div>
 
-        {/* =========================
+
+        {/* ==================================================
             LOGO
-        ========================= */}
+        ================================================== */}
 
         <div className="mb-10 px-5">
 
@@ -135,6 +232,7 @@ function Navbar({ handleLogout }) {
             className={`
               flex
               items-center
+
               ${
                 isOpen
                   ? "gap-4"
@@ -143,29 +241,36 @@ function Navbar({ handleLogout }) {
             `}
           >
 
-            {/* LOGO */}
+
+            {/* ==================================================
+                LOGO ICON
+            ================================================== */}
 
             <div
               className="
                 h-14
                 w-14
-                rounded-3xl
-                bg-gradient-to-r
-                from-violet-600
-                to-fuchsia-500
+                shrink-0
+                rounded-2xl
+                bg-gradient-to-br
+                from-blue-600
+                to-cyan-500
                 flex
                 items-center
                 justify-center
                 text-white
                 text-2xl
-                font-black
-                shadow-[0_10px_30px_rgba(139,92,246,0.35)]
+                font-bold
+                shadow-[0_10px_25px_rgba(37,99,235,0.25)]
               "
             >
-              S
+              T
             </div>
 
-            {/* TEXT */}
+
+            {/* ==================================================
+                LOGO TEXT
+            ================================================== */}
 
             {isOpen && (
 
@@ -177,13 +282,13 @@ function Navbar({ handleLogout }) {
                     font-black
                     tracking-tight
                     bg-gradient-to-r
-                    from-violet-600
-                    to-fuchsia-500
+                    from-blue-600
+                    to-cyan-500
                     bg-clip-text
                     text-transparent
                   "
                 >
-                  Selectra
+                  TalentIQ
                 </h2>
 
                 <p
@@ -193,27 +298,30 @@ function Navbar({ handleLogout }) {
                     mt-1
                   "
                 >
-                  Smart Hiring Hub
+                  Intelligent Recruitment
                 </p>
 
               </div>
+
             )}
 
           </div>
 
         </div>
 
-        {/* =========================
+
+        {/* ==================================================
             MENU
-        ========================= */}
+        ================================================== */}
 
         <div className="space-y-2 px-4">
 
           {menuItems.map((item) => {
 
             const isActive =
-              location.pathname ===
-              item.path;
+              isMenuItemActive(
+                item.path
+              );
 
             return (
 
@@ -228,11 +336,13 @@ function Navbar({ handleLogout }) {
                     relative
                     flex
                     items-center
+
                     ${
                       isOpen
                         ? "justify-start"
                         : "justify-center"
                     }
+
                     gap-4
                     rounded-2xl
                     px-4
@@ -245,24 +355,30 @@ function Navbar({ handleLogout }) {
                     ${
                       isActive
                         ? `
-                        bg-gradient-to-r
-                        from-violet-600
-                        to-fuchsia-500
-                        text-white
-                        shadow-[0_10px_25px_rgba(139,92,246,0.30)]
-                      `
+                          bg-gradient-to-r
+                          from-blue-600
+                          to-cyan-500
+                          text-white
+                          shadow-[0_10px_25px_rgba(37,99,235,0.30)]
+                        `
                         : `
-                        text-slate-600
-                        hover:bg-violet-50
-                        hover:text-violet-700
-                      `
+                          text-slate-600
+                          hover:bg-gradient-to-r
+                          hover:from-blue-50
+                          hover:to-cyan-50
+                          hover:text-blue-700
+                        `
                     }
                   `}
                 >
 
-                  {/* ACTIVE SIDE BAR */}
+
+                  {/* ==================================================
+                      ACTIVE SIDE BAR
+                  ================================================== */}
 
                   {isActive && (
+
                     <div
                       className="
                         absolute
@@ -274,42 +390,62 @@ function Navbar({ handleLogout }) {
                         bg-white
                       "
                     />
+
                   )}
 
-                  {/* ICON */}
+
+                  {/* ==================================================
+                      ICON
+                  ================================================== */}
 
                   <div
-                    className="
+                    className={`
                       min-w-[24px]
-                      transition-transform
+                      transition-all
                       duration-300
                       group-hover:scale-110
-                    "
+
+                      ${
+                        isActive
+                          ? "text-white"
+                          : "text-blue-600"
+                      }
+                    `}
                   >
+
                     {item.icon}
+
                   </div>
 
-                  {/* TEXT */}
+
+                  {/* ==================================================
+                      TEXT
+                  ================================================== */}
 
                   {isOpen && (
+
                     <span>
                       {item.name}
                     </span>
+
                   )}
 
                 </div>
 
               </Link>
+
             );
+
           })}
 
         </div>
 
       </div>
 
-      {/* =========================
+
+      {/* ==================================================
           BOTTOM
-      ========================= */}
+      ================================================== */}
 
       <div className="relative z-10 p-4">
 
@@ -320,14 +456,14 @@ function Navbar({ handleLogout }) {
             w-full
             rounded-2xl
             bg-gradient-to-r
-            from-violet-600
-            to-fuchsia-500
+            from-blue-600
+            to-cyan-500
             text-white
             font-semibold
             transition-all
             duration-300
             hover:scale-[1.02]
-            hover:shadow-[0_10px_30px_rgba(139,92,246,0.35)]
+            hover:shadow-[0_10px_30px_rgba(37,99,235,0.35)]
             flex
             items-center
             justify-center
@@ -337,18 +473,29 @@ function Navbar({ handleLogout }) {
 
           <LogOut size={18} />
 
-          {isOpen &&
-            "Logout"}
+          {isOpen && "Logout"}
 
         </Button>
 
+
+        {/* ==================================================
+            VERSION
+        ================================================== */}
+
         {isOpen && (
-  <div className="mt-5 text-center">
-    <p className="text-xs text-slate-400">
-      Selectra v1.0
-    </p>
-  </div>
-)}
+
+          <p
+            className="
+              mt-4
+              text-center
+              text-xs
+              text-slate-400
+            "
+          >
+            TalentIQ v1.0
+          </p>
+
+        )}
 
       </div>
 

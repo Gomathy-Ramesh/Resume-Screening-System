@@ -2,9 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
-/* =========================
+/* =========================================================
    GOOGLE FONTS
-========================= */
+   ========================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+
+/* =========================================================
+   TALENTIQ FONT CLASSES
+   ========================================================= */
 
 .font-logo {
   font-family: 'Space Grotesk', sans-serif;
@@ -14,33 +21,61 @@
   font-family: 'Sora', sans-serif;
 }
 
-/* =========================
-   GLOBAL STYLES
-========================= */
 
+/* =========================================================
+   GLOBAL STYLES
+   ========================================================= */
 html,
 body,
 #root {
-  height: 100%;
+  min-height: 100%;
   margin: 0;
-  padding: 0;
 }
-
 body {
   background: #FAFAFF;
   font-family: 'Inter', sans-serif;
   color: #1e293b;
-  overflow: hidden;
+
+  overflow-x: hidden;
+  overflow-y: auto;
+
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* =========================
+
+/* =========================================================
+   GLOBAL BOX SIZING
+   ========================================================= */
+
+* {
+  box-sizing: border-box;
+}
+
+
+/* =========================================================
+   BUTTON / INPUT / TEXTAREA
+   ========================================================= */
+
+button,
+input,
+textarea,
+select {
+  font-family: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+
+/* =========================================================
    CUSTOM SCROLLBAR
-========================= */
+   ========================================================= */
 
 ::-webkit-scrollbar {
   width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
@@ -54,6 +89,7 @@ body {
     #8b5cf6,
     #c084fc
   );
+
   border-radius: 20px;
 }
 
@@ -65,12 +101,17 @@ body {
   );
 }
 
-/* =========================
-   SMOOTH TRANSITIONS
-========================= */
 
-* {
-  box-sizing: border-box;
+/* =========================================================
+   SMOOTH TRANSITIONS
+   ========================================================= */
+
+button,
+input,
+textarea,
+select,
+.card-hover,
+.glass-card {
   transition:
     background-color 0.25s ease,
     border-color 0.25s ease,
@@ -78,20 +119,24 @@ body {
     transform 0.25s ease;
 }
 
-/* =========================
+
+/* =========================================================
    GLASS EFFECT
-========================= */
+   ========================================================= */
 
 .glass-card {
   background: rgba(255, 255, 255, 0.75);
+
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255,255,255,0.2);
+
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-/* =========================
+
+/* =========================================================
    VIOLET GLOW
-========================= */
+   ========================================================= */
 
 .violet-glow {
   box-shadow:
@@ -100,17 +145,19 @@ body {
     0 0 80px rgba(139, 92, 246, 0.08);
 }
 
-/* =========================
+
+/* =========================================================
    HOVER LIFT
-========================= */
+   ========================================================= */
 
 .hover-lift:hover {
   transform: translateY(-6px);
 }
 
-/* =========================
+
+/* =========================================================
    FLOAT ANIMATION
-========================= */
+   ========================================================= */
 
 @keyframes float {
   0% {
@@ -130,9 +177,10 @@ body {
   animation: float 6s ease-in-out infinite;
 }
 
-/* =========================
+
+/* =========================================================
    GRADIENT ANIMATION
-========================= */
+   ========================================================= */
 
 @keyframes gradientMove {
   0% {
@@ -153,9 +201,10 @@ body {
   animation: gradientMove 8s ease infinite;
 }
 
-/* =========================
+
+/* =========================================================
    GLOWING ORBS
-========================= */
+   ========================================================= */
 
 @keyframes pulseGlow {
   0% {
@@ -178,9 +227,10 @@ body {
   animation: pulseGlow 8s ease-in-out infinite;
 }
 
-/* =========================
+
+/* =========================================================
    CARD HOVER
-========================= */
+   ========================================================= */
 
 .card-hover {
   transition: all 0.3s ease;
@@ -188,16 +238,176 @@ body {
 
 .card-hover:hover {
   transform: translateY(-8px);
+
   box-shadow:
     0 20px 40px rgba(139, 92, 246, 0.15);
 }
 
-/* =========================
+
+/* =========================================================
    TEXT GLOW
-========================= */
+   ========================================================= */
 
 .text-glow {
   text-shadow:
-    0 0 10px rgba(255,255,255,0.3),
-    0 0 20px rgba(255,255,255,0.15);
+    0 0 10px rgba(255, 255, 255, 0.3),
+    0 0 20px rgba(255, 255, 255, 0.15);
+}
+
+
+/* =========================================================
+   TALENTIQ GRADIENT TEXT
+   ========================================================= */
+
+.talentiq-gradient-text {
+  background: linear-gradient(
+    to right,
+    #7c3aed,
+    #d946ef,
+    #06b6d4
+  );
+
+  background-clip: text;
+  -webkit-background-clip: text;
+
+  color: transparent;
+}
+
+
+/* =========================================================
+   TALENTIQ GRADIENT BACKGROUND
+   ========================================================= */
+
+.talentiq-gradient {
+  background: linear-gradient(
+    135deg,
+    #7c3aed,
+    #d946ef,
+    #06b6d4
+  );
+}
+
+
+/* =========================================================
+   PAGE BACKGROUND
+   ========================================================= */
+
+.page-background {
+  background: #FAFAFF;
+}
+
+
+/* =========================================================
+   SOFT CARD
+   ========================================================= */
+
+.soft-card {
+  background: #ffffff;
+
+  border: 1px solid #e2e8f0;
+
+  border-radius: 24px;
+
+  box-shadow:
+    0 2px 12px rgba(15, 23, 42, 0.04);
+}
+
+
+/* =========================================================
+   PURPLE CARD GLOW
+   ========================================================= */
+
+.purple-card-glow:hover {
+  border-color: #c4b5fd;
+
+  box-shadow:
+    0 0 40px rgba(124, 58, 237, 0.15);
+}
+
+
+/* =========================================================
+   TABLE HOVER
+   ========================================================= */
+
+.talentiq-table-row {
+  transition:
+    background-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.talentiq-table-row:hover {
+  background-color: #f5f3ff;
+}
+
+
+/* =========================================================
+   STATUS BADGES
+   ========================================================= */
+
+.status-active {
+  background: linear-gradient(
+    to right,
+    #10b981,
+    #16a34a
+  );
+
+  color: white;
+}
+
+.status-hold {
+  background: linear-gradient(
+    to right,
+    #fbbf24,
+    #f97316
+  );
+
+  color: white;
+}
+
+.status-closed {
+  background: linear-gradient(
+    to right,
+    #f43f5e,
+    #dc2626
+  );
+
+  color: white;
+}
+
+
+/* =========================================================
+   SELECTION
+   ========================================================= */
+
+::selection {
+  background: #8b5cf6;
+  color: white;
+}
+
+
+/* =========================================================
+   FOCUS
+   ========================================================= */
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 768px) {
+
+  body {
+    overflow: auto;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
 }

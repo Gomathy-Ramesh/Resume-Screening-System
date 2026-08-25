@@ -1,11 +1,18 @@
 package com.resume.resume_screening_system.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
+
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "candidates")
+@JsonIgnoreProperties({
+        "hibernateLazyInitializer",
+        "handler"
+})
 public class Candidate {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long candidateId;
@@ -32,6 +39,10 @@ public class Candidate {
 
     @ManyToOne
     @JoinColumn(name = "job_id")
+    @JsonIgnoreProperties({
+            "hibernateLazyInitializer",
+            "handler"
+    })
     private Job job;
 
     // =========================

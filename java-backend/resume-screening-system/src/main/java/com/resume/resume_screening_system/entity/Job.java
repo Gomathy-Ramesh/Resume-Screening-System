@@ -65,12 +65,10 @@ public class Job {
     // =========================
 
     public Long getJobId() {
-
         return jobId;
     }
 
     public void setJobId(Long jobId) {
-
         this.jobId = jobId;
     }
 
@@ -79,12 +77,10 @@ public class Job {
     // =========================
 
     public String getJobTitle() {
-
         return jobTitle;
     }
 
     public void setJobTitle(String jobTitle) {
-
         this.jobTitle = jobTitle;
     }
 
@@ -93,14 +89,10 @@ public class Job {
     // =========================
 
     public String getJobDescription() {
-
         return jobDescription;
     }
 
-    public void setJobDescription(
-            String jobDescription
-    ) {
-
+    public void setJobDescription(String jobDescription) {
         this.jobDescription = jobDescription;
     }
 
@@ -109,14 +101,10 @@ public class Job {
     // =========================
 
     public String getCompanyName() {
-
         return companyName;
     }
 
-    public void setCompanyName(
-            String companyName
-    ) {
-
+    public void setCompanyName(String companyName) {
         this.companyName = companyName;
     }
 
@@ -125,16 +113,11 @@ public class Job {
     // =========================
 
     public Double getThresholdPercentage() {
-
         return thresholdPercentage;
     }
 
-    public void setThresholdPercentage(
-            Double thresholdPercentage
-    ) {
-
-        this.thresholdPercentage =
-                thresholdPercentage;
+    public void setThresholdPercentage(Double thresholdPercentage) {
+        this.thresholdPercentage = thresholdPercentage;
     }
 
     // =========================
@@ -142,14 +125,10 @@ public class Job {
     // =========================
 
     public String getStatus() {
-
         return status;
     }
 
-    public void setStatus(
-            String status
-    ) {
-
+    public void setStatus(String status) {
         this.status = status;
     }
 
@@ -158,15 +137,10 @@ public class Job {
     // =========================
 
     public Long getCandidateCount() {
-
         return candidateCount;
     }
 
-    public void setCandidateCount(
-            Long candidateCount
-    ) {
-
-        this.candidateCount =
-                candidateCount;
+    public void setCandidateCount(Long candidateCount) {
+        this.candidateCount = candidateCount;
     }
 }
