@@ -50,7 +50,7 @@ import Interviews from "./components/ui/Interviews";
 // BACKEND URL
 // ======================================================
 
-const API_URL = "http://localhost:8080";
+const API_URL = "https://resume-screening-backend-biq3.onrender.com";
 
 // ======================================================
 // SHARED CANDIDATE LOGIN
