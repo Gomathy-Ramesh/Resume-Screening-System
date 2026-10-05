@@ -65,7 +65,7 @@ public class PythonNlpService {
             // =========================
 
             String pythonApiUrl =
-                    "https://resume-screening-system-uhnn.onrender.com/analyze";
+                    "https://resume-nlp-engine-7amh.onrender.com/analyze";
 
             // =========================
             // HEADERS
